@@ -1,0 +1,2499 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icon.png">
+<link rel="icon" type="image/png" href="icon.png">
+<meta name="apple-mobile-web-app-title" content="CQS">
+<title>CQS Universal — Mobile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════
+   TOKENS — DEFAULT (AZUL)
+═══════════════════════════════════════════════ */
+:root {
+  --serif: 'Merriweather', Georgia, serif;
+  --sans:  'Inter', system-ui, sans-serif;
+
+  --bg-app:        #EEF4FB;
+  --bg-card:       #FFFFFF;
+  --bg-header:     #1F4E79;
+  --bg-btn-mc:     #F0F7FF;
+  --bg-format-hint:#F0F6FF;
+
+  --text-primary:  #1A2E42;
+  --text-secondary:#4A6580;
+  --text-header:   #FFFFFF;
+  --text-header-sub: rgba(255,255,255,0.75);
+
+  --blue:          #2563EB;
+  --blue-mid:      #3B82F6;
+  --blue-light:    #DBEAFE;
+  --gold:          #C8960C;
+  --green:         #16A34A;
+  --green-light:   #DCFCE7;
+  --red:           #DC2626;
+  --red-light:     #FEE2E2;
+
+  --border-input:  #CBD5E1;
+  --shadow-card:   0 2px 12px rgba(0,0,0,0.08);
+
+  --tab-active-bg:  #FFFFFF;
+  --tab-active-txt: #1F4E79;
+  --tab-inactive:   rgba(255,255,255,0.55);
+
+  --pct-excellent-bg:#DCFCE7; --pct-excellent-txt:#15803D;
+  --pct-good-bg:     #DBEAFE; --pct-good-txt:     #1D4ED8;
+  --pct-review-bg:   #FEF9C3; --pct-review-txt:   #854D0E;
+  --pct-poor-bg:     #FEE2E2; --pct-poor-txt:     #B91C1C;
+}
+[data-theme="dark"] {
+  --bg-app:        #0D1B2A;
+  --bg-card:       #152030;
+  --bg-header:     #0A1520;
+  --bg-btn-mc:     #1A2C3E;
+  --bg-format-hint:#1A2840;
+  --text-primary:  #E8F0F8;
+  --text-secondary:#7FB8E8;
+  --text-header:   #E8F0F8;
+  --text-header-sub:rgba(180,210,240,0.7);
+  --blue:          #60A5FA;
+  --blue-mid:      #3B82F6;
+  --blue-light:    #1E3A5F;
+  --gold:          #FFD54F;
+  --green:         #4ADE80;
+  --green-light:   #14532D;
+  --red:           #F87171;
+  --red-light:     #450A0A;
+  --border-input:  #2A4060;
+  --shadow-card:   0 2px 12px rgba(0,0,0,0.4);
+  --tab-active-bg: #152030;
+  --tab-active-txt:#7FB8E8;
+}
+[data-theme="sepia"] {
+  --bg-app:        #F0E8D8;
+  --bg-card:       #FDF7EE;
+  --bg-header:     #5C3A1E;
+  --bg-btn-mc:     #F5EDD8;
+  --bg-format-hint:#F5EDD8;
+  --text-primary:  #2C1810;
+  --text-secondary:#7A5C40;
+  --text-header:   #FFF8EE;
+  --text-header-sub:rgba(255,240,210,0.75);
+  --blue:          #8B4513;
+  --blue-mid:      #A0522D;
+  --blue-light:    #F5E6D0;
+  --gold:          #B8860B;
+  --green:         #556B2F;
+  --green-light:   #F0F4E8;
+  --red:           #8B2500;
+  --red-light:     #FDF0E8;
+  --border-input:  #C8A882;
+  --shadow-card:   0 2px 12px rgba(92,58,30,0.12);
+  --tab-active-bg: #FDF7EE;
+  --tab-active-txt:#5C3A1E;
+}
+
+/* ═══ RESET & BASE ═══ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; -webkit-text-size-adjust: 100%; }
+body {
+  font-family: var(--sans);
+  background: var(--bg-app);
+  color: var(--text-primary);
+  min-height: 100dvh;
+  overflow-x: hidden;
+  transition: background 0.3s, color 0.3s;
+}
+
+/* ═══ SCREENS ═══ */
+#setup-screen, #quiz-screen, #result-screen,
+#gabarito-screen, #history-screen {
+  display: none;
+  min-height: 100dvh;
+}
+#setup-screen { display: flex; flex-direction: column; }
+
+/* ═══════════════════════════════════════════════
+   SETUP SCREEN
+═══════════════════════════════════════════════ */
+.setup-header {
+  background: var(--bg-header);
+  padding: 20px 20px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.setup-header-logo {
+  display: flex; align-items: center; gap: 10px;
+}
+.setup-header-logo-icon { font-size: 28px; }
+.setup-header-logo h1 {
+  font-family: var(--serif); font-size: 18px;
+  color: var(--text-header); font-weight: 700; line-height: 1.2;
+}
+.setup-header-logo p {
+  font-size: 11px; color: var(--text-header-sub); margin-top: 1px;
+}
+.setup-header-actions { display: flex; gap: 8px; }
+.btn-icon {
+  width: 40px; height: 40px; border-radius: 10px;
+  border: 1.5px solid rgba(255,255,255,0.25);
+  background: rgba(255,255,255,0.1);
+  color: var(--text-header); font-size: 18px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.setup-body {
+  flex: 1; padding: 20px 16px;
+  display: flex; flex-direction: column; gap: 16px;
+}
+.setup-section-label {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+  color: var(--text-secondary); text-transform: uppercase; margin-bottom: 8px;
+}
+.upload-zone {
+  border: 2px dashed var(--border-input);
+  border-radius: 14px; background: var(--bg-card);
+  padding: 28px 20px; text-align: center;
+  cursor: pointer; position: relative;
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.upload-zone input[type="file"] {
+  position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+}
+.upload-zone .upload-icon { font-size: 36px; margin-bottom: 10px; }
+.upload-zone p { font-size: 14px; color: var(--text-secondary); line-height: 1.5; }
+.upload-zone p strong { color: var(--text-primary); }
+.upload-zone.has-file { border-color: var(--green); border-style: solid; }
+.file-name { font-weight: 700; color: var(--text-primary); font-size: 14px; }
+.file-count { font-size: 12px; color: var(--green); margin-top: 4px; }
+.title-input {
+  width: 100%; padding: 13px 16px; border-radius: 12px;
+  border: 1.5px solid var(--border-input);
+  background: var(--bg-card); color: var(--text-primary);
+  font-family: var(--sans); font-size: 15px;
+  transition: border-color 0.2s;
+  -webkit-appearance: none;
+}
+.title-input:focus { outline: none; border-color: var(--blue); }
+.btn-filter-ids {
+  width: 100%; padding: 12px 16px; border-radius: 12px;
+  border: 1.5px dashed var(--border-input);
+  background: transparent; color: var(--text-secondary);
+  font-family: var(--sans); font-size: 14px; font-weight: 600;
+  cursor: pointer; display: flex; align-items: center; gap: 8px;
+  -webkit-tap-highlight-color: transparent;
+}
+.setup-error {
+  color: var(--red); font-size: 13px; font-weight: 600; text-align: center; min-height: 18px;
+}
+.btn-generate {
+  width: 100%; padding: 17px;
+  background: var(--blue); color: #fff;
+  border: none; border-radius: 14px;
+  font-family: var(--serif); font-size: 17px; font-weight: 700;
+  cursor: pointer; letter-spacing: 0.02em;
+  box-shadow: 0 4px 18px rgba(37,99,235,0.35);
+  -webkit-tap-highlight-color: transparent;
+  transition: opacity 0.15s;
+}
+.btn-generate:active { opacity: 0.85; }
+[data-theme="dark"] .btn-generate { box-shadow: 0 4px 18px rgba(96,165,250,0.25); }
+[data-theme="sepia"] .btn-generate { background: var(--bg-header); box-shadow: 0 4px 18px rgba(92,58,30,0.3); }
+
+/* ═══════════════════════════════════════════════
+   QUIZ SCREEN
+═══════════════════════════════════════════════ */
+.quiz-topbar {
+  background: var(--bg-header);
+  padding: 12px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+}
+.quiz-topbar-left { display: flex; align-items: center; gap: 8px; }
+.quiz-logo-m {
+  font-family: var(--serif); font-size: 14px; font-weight: 700;
+  color: var(--text-header); background: rgba(255,255,255,0.15);
+  padding: 3px 8px; border-radius: 6px;
+}
+.quiz-title-m {
+  font-size: 12px; color: var(--text-header-sub);
+  max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.quiz-badges { display: flex; gap: 6px; align-items: center; }
+.m-badge {
+  font-size: 12px; font-weight: 700; padding: 4px 9px;
+  border-radius: 8px; font-family: var(--sans);
+}
+.m-badge-total   { background: rgba(255,255,255,0.15); color: var(--text-header); }
+.m-badge-correct { background: rgba(22,163,74,0.25);   color: #4ADE80; }
+.m-badge-wrong   { background: rgba(220,38,38,0.25);   color: #F87171; }
+.quiz-body-m {
+  padding: 16px 16px 100px;
+  min-height: calc(100dvh - 56px);
+}
+.m-progress {
+  margin-bottom: 14px;
+}
+.m-progress-meta {
+  display: flex; justify-content: space-between;
+  font-size: 12px; color: var(--text-secondary); margin-bottom: 6px;
+}
+.m-progress-bar {
+  height: 5px; background: var(--border-input); border-radius: 3px; overflow: hidden;
+}
+.m-progress-fill {
+  height: 100%; background: var(--blue); border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+/* Q-CARD mobile */
+.m-qcard {
+  background: var(--bg-card);
+  border-radius: 16px;
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+.m-qheader {
+  background: var(--bg-header);
+  padding: 12px 14px;
+}
+.m-qheader-row1 {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+}
+.m-qseq {
+  font-family: var(--serif); font-size: 13px; font-weight: 700;
+  color: var(--text-header); background: rgba(255,255,255,0.18);
+  padding: 3px 9px; border-radius: 6px; white-space: nowrap;
+}
+.m-qid {
+  font-size: 11px; color: var(--text-header-sub);
+}
+.m-qmeta {
+  font-size: 11px; color: var(--text-header-sub); margin-top: 4px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.m-qstatus { font-size: 12px; font-weight: 700; }
+.m-qstatus.correct { color: #4ADE80; }
+.m-qstatus.wrong   { color: #F87171; }
+.m-qtag-row { margin-top: 6px; }
+.m-qtag {
+  display: inline-block; font-size: 11px;
+  background: rgba(255,255,255,0.15); color: var(--text-header);
+  padding: 2px 8px; border-radius: 6px;
+}
+.m-qduvida {
+  display: inline-block; font-size: 11px;
+  background: rgba(200,150,12,0.3); color: #FFD54F;
+  padding: 2px 8px; border-radius: 6px; margin-left: 4px;
+}
+
+/* Enunciado */
+.m-enunciado {
+  padding: 16px 14px 12px;
+  font-family: var(--serif); font-size: 15px; line-height: 1.7;
+  color: var(--text-primary); border-bottom: 1px solid var(--border-input);
+}
+
+/* Strike row */
+.m-strike-row {
+  padding: 8px 14px;
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  border-bottom: 1px solid var(--border-input);
+  background: var(--bg-format-hint);
+}
+.m-strike-label {
+  font-size: 11px; color: var(--text-secondary); font-weight: 600; flex-shrink: 0;
+}
+.m-strike-btn {
+  width: 32px; height: 32px; border-radius: 8px;
+  border: 1.5px solid var(--border-input);
+  background: var(--bg-card); color: var(--text-primary);
+  font-size: 13px; font-weight: 700; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s; font-family: var(--sans);
+  -webkit-tap-highlight-color: transparent;
+}
+.m-strike-btn.struck {
+  background: var(--red-light); border-color: var(--red); color: var(--red);
+  text-decoration: line-through; opacity: 0.7;
+}
+
+/* Opções CE */
+.m-opts-ce {
+  padding: 14px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+}
+.m-btn-ce {
+  padding: 18px 8px;
+  border-radius: 14px; border: 2px solid var(--border-input);
+  background: var(--bg-btn-mc); color: var(--text-primary);
+  font-family: var(--serif); font-size: 15px; font-weight: 700;
+  cursor: pointer; text-align: center; letter-spacing: 0.02em;
+  transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.m-btn-ce:active { transform: scale(0.97); }
+.m-btn-ce.selected { border-color: var(--blue); background: var(--blue-light); }
+.m-btn-ce.correct  { border-color: var(--green); background: var(--green-light); color: var(--green); }
+.m-btn-ce.wrong    { border-color: var(--red);   background: var(--red-light);   color: var(--red); }
+.m-btn-ce:disabled { cursor: default; opacity: 0.85; }
+
+/* Opções MULTIPLA */
+.m-opts-mult {
+  padding: 12px 14px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.m-btn-mult {
+  padding: 13px 14px;
+  border-radius: 12px; border: 1.5px solid var(--border-input);
+  background: var(--bg-btn-mc); color: var(--text-primary);
+  font-family: var(--serif); font-size: 14px; line-height: 1.5;
+  cursor: pointer; text-align: left; display: flex; align-items: flex-start; gap: 10px;
+  transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  width: 100%;
+}
+.m-btn-mult:active { transform: scale(0.99); }
+.m-btn-mult .opt-letra {
+  flex-shrink: 0; width: 26px; height: 26px;
+  border-radius: 50%; border: 1.5px solid var(--border-input);
+  background: var(--bg-card); display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; font-family: var(--sans);
+  margin-top: 1px;
+}
+.m-btn-mult.selected { border-color: var(--blue); background: var(--blue-light); }
+.m-btn-mult.selected .opt-letra { border-color: var(--blue); background: var(--blue); color: #fff; }
+.m-btn-mult.correct { border-color: var(--green); background: var(--green-light); }
+.m-btn-mult.correct .opt-letra { border-color: var(--green); background: var(--green); color: #fff; }
+.m-btn-mult.wrong   { border-color: var(--red);   background: var(--red-light); }
+.m-btn-mult.wrong .opt-letra   { border-color: var(--red);   background: var(--red);   color: #fff; }
+.m-btn-mult:disabled { cursor: default; }
+
+/* Confirm + nav bar — fixed bottom */
+.m-bottom-bar {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
+  background: var(--bg-card);
+  border-top: 1px solid var(--border-input);
+  padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+  display: flex; flex-direction: column; gap: 8px;
+  box-shadow: 0 -4px 16px rgba(0,0,0,0.08);
+}
+.m-bottom-bar-top { display: flex; gap: 8px; }
+.m-bottom-bar-bottom { display: flex; gap: 8px; }
+.btn-m-confirm {
+  flex: 1; padding: 14px;
+  background: var(--blue); color: #fff;
+  border: none; border-radius: 12px;
+  font-family: var(--serif); font-size: 15px; font-weight: 700;
+  cursor: pointer; transition: opacity 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-m-confirm:disabled { opacity: 0.4; cursor: default; }
+.btn-m-confirm:active:not(:disabled) { opacity: 0.85; }
+.btn-m-nav {
+  padding: 14px 20px;
+  background: var(--bg-btn-mc); color: var(--text-primary);
+  border: 1.5px solid var(--border-input); border-radius: 12px;
+  font-family: var(--sans); font-size: 14px; font-weight: 600;
+  cursor: pointer; transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-m-nav:disabled { opacity: 0.3; cursor: default; }
+.btn-m-duvida {
+  flex: 1; padding: 11px;
+  background: transparent; color: var(--text-secondary);
+  border: 1.5px solid var(--border-input); border-radius: 12px;
+  font-family: var(--sans); font-size: 13px; font-weight: 600;
+  cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-m-duvida.marcada { border-color: var(--gold); color: var(--gold); background: rgba(200,150,12,0.08); }
+.btn-m-next {
+  flex: 1; padding: 14px;
+  background: var(--bg-header); color: var(--text-header);
+  border: none; border-radius: 12px;
+  font-family: var(--serif); font-size: 15px; font-weight: 700;
+  cursor: pointer; transition: opacity 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-m-next:active { opacity: 0.85; }
+
+/* Feedback */
+.m-feedback {
+  margin: 0 14px 8px;
+  border-radius: 12px; overflow: hidden;
+  display: none;
+}
+.m-feedback.visible { display: block; }
+.m-feedback-banner {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 14px;
+  font-family: var(--sans); font-size: 14px; font-weight: 700;
+}
+.m-feedback-banner.correct { background: var(--green); color: #fff; }
+.m-feedback-banner.wrong   { background: var(--red);   color: #fff; }
+.btn-m-ver-comentario {
+  background: rgba(255,255,255,0.2); border: none;
+  color: #fff; border-radius: 8px;
+  padding: 6px 12px; font-size: 12px; font-weight: 600;
+  cursor: pointer; font-family: var(--sans); white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+}
+.m-comment-panel { display: none; }
+.m-comment-panel.open { display: block; }
+.m-comment-block {
+  background: var(--bg-format-hint);
+  border-left: 3px solid var(--blue-mid);
+  padding: 14px; margin: 0;
+}
+.m-comment-title {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--text-secondary); margin-bottom: 8px;
+}
+.m-comment-text {
+  font-family: var(--serif); font-size: 14px; line-height: 1.65;
+  color: var(--text-primary); white-space: pre-wrap;
+}
+.m-tip-block {
+  background: #FFFDE7; border-left: 3px solid #F9A825;
+  padding: 14px;
+}
+[data-theme="dark"] .m-tip-block { background: #2A2200; }
+[data-theme="sepia"] .m-tip-block { background: #FFF8E1; }
+.m-tip-title {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.08em; color: #B45309; margin-bottom: 8px;
+}
+[data-theme="dark"] .m-tip-title { color: #FFD54F; }
+.m-tip-text {
+  font-family: var(--serif); font-size: 14px; line-height: 1.65;
+  color: #7C4A00;
+}
+[data-theme="dark"] .m-tip-text { color: #FFD54F; }
+[data-theme="sepia"] .m-tip-text { color: #6D3A00; }
+.m-gabarito-line {
+  padding: 10px 14px;
+  font-size: 12px; font-weight: 700; color: var(--text-secondary);
+  background: var(--bg-format-hint); border-top: 1px solid var(--border-input);
+}
+
+/* ═══════════════════════════════════════════════
+   RESULT SCREEN
+═══════════════════════════════════════════════ */
+#result-screen {
+  display: none; flex-direction: column; align-items: center;
+  justify-content: center; padding: 32px 20px;
+  min-height: 100dvh; background: var(--bg-header);
+}
+.m-result-card {
+  background: var(--bg-card); border-radius: 20px;
+  padding: 32px 24px; width: 100%; max-width: 400px;
+  text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}
+.m-result-emoji { font-size: 52px; display: block; margin-bottom: 12px; }
+.m-result-title {
+  font-family: var(--serif); font-size: 22px; font-weight: 700;
+  color: var(--text-primary); margin-bottom: 4px;
+}
+.m-result-subtitle { font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; }
+.m-result-pct {
+  font-family: var(--serif); font-size: 52px; font-weight: 700;
+  margin-bottom: 4px;
+}
+.m-result-pct.excellent { color: var(--green); }
+.m-result-pct.good      { color: var(--blue); }
+.m-result-pct.review    { color: var(--gold); }
+.m-result-pct.poor      { color: var(--red); }
+.m-result-label { font-size: 13px; color: var(--text-secondary); margin-bottom: 24px; }
+.m-result-stats {
+  display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 20px;
+}
+.m-result-stat {
+  padding: 12px 6px; border-radius: 12px;
+  background: var(--bg-btn-mc); border: 1.5px solid var(--border-input);
+}
+.m-result-stat-n { font-size: 24px; font-weight: 700; font-family: var(--serif); }
+.m-result-stat-l { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+.m-save-status { font-size: 12px; color: var(--text-secondary); margin-bottom: 16px; min-height: 16px; }
+.m-save-status.ok { color: var(--green); }
+.m-save-status.err { color: var(--red); }
+.m-save-status.loading { color: var(--gold); }
+.m-result-btns { display: flex; flex-direction: column; gap: 10px; }
+.btn-m-result {
+  width: 100%; padding: 15px;
+  border: none; border-radius: 12px;
+  font-family: var(--serif); font-size: 15px; font-weight: 700;
+  cursor: pointer; color: #fff;
+  -webkit-tap-highlight-color: transparent;
+  transition: opacity 0.15s;
+}
+.btn-m-result:active { opacity: 0.85; }
+.btn-m-result:disabled { opacity: 0.45; cursor: default; }
+
+/* ═══════════════════════════════════════════════
+   GABARITO SCREEN
+═══════════════════════════════════════════════ */
+.gab-header-m {
+  background: var(--bg-header);
+  padding: 16px;
+  position: sticky; top: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.gab-header-m-title {
+  font-family: var(--serif); font-size: 16px; font-weight: 700;
+  color: var(--text-header);
+}
+.gab-header-m-sub { font-size: 12px; color: var(--text-header-sub); margin-top: 2px; }
+.btn-m-back {
+  background: rgba(255,255,255,0.1); border: 1.5px solid rgba(255,255,255,0.25);
+  color: var(--text-header); border-radius: 10px;
+  padding: 8px 14px; font-size: 13px; font-weight: 600;
+  cursor: pointer; white-space: nowrap;
+  font-family: var(--sans);
+  -webkit-tap-highlight-color: transparent;
+}
+.gab-body-m { padding: 12px; }
+.gab-row-m {
+  background: var(--bg-card); border-radius: 12px;
+  margin-bottom: 8px; padding: 12px 14px;
+  display: grid; grid-template-columns: 1fr auto auto auto auto;
+  gap: 8px; align-items: center;
+  box-shadow: var(--shadow-card);
+}
+.gab-qid-m { font-weight: 700; font-size: 14px; font-family: var(--serif); }
+.gab-resp-m { font-size: 13px; color: var(--text-secondary); }
+.gab-gab-m  { font-size: 13px; font-weight: 700; }
+.gab-res-m  {
+  width: 28px; height: 28px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700;
+}
+.gab-res-m.c { background: var(--green-light); color: var(--green); }
+.gab-res-m.e { background: var(--red-light);   color: var(--red); }
+.btn-m-ver {
+  background: var(--bg-btn-mc); border: 1.5px solid var(--border-input);
+  border-radius: 8px; padding: 5px 10px;
+  font-size: 12px; font-weight: 600; color: var(--text-secondary);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ═══════════════════════════════════════════════
+   HISTORY SCREEN
+═══════════════════════════════════════════════ */
+.hist-header-m {
+  background: var(--bg-header);
+  padding: 16px;
+  position: sticky; top: 0; z-index: 100;
+}
+.hist-header-m-top {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;
+}
+.hist-header-m-title {
+  font-family: var(--serif); font-size: 16px; font-weight: 700; color: var(--text-header);
+}
+.hist-tabs-m {
+  display: grid; grid-template-columns: repeat(4,1fr); gap: 3px;
+  background: rgba(0,0,0,0.2); border-radius: 10px; padding: 3px;
+}
+.hist-tab-m {
+  padding: 7px 4px; border: none; border-radius: 8px;
+  background: transparent; color: var(--tab-inactive);
+  font-family: var(--sans); font-size: 11px; font-weight: 600;
+  cursor: pointer; text-align: center;
+  -webkit-tap-highlight-color: transparent;
+  transition: all 0.2s;
+}
+.hist-tab-m.active {
+  background: var(--tab-active-bg); color: var(--tab-active-txt);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+}
+.hist-body-m { padding: 16px; padding-bottom: 32px; }
+
+/* Stats cards */
+.hstat-grid-m {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;
+}
+.hstat-card-m {
+  background: var(--bg-card); border-radius: 14px;
+  padding: 14px 12px; text-align: center; box-shadow: var(--shadow-card);
+}
+.hstat-n-m { font-size: 24px; font-weight: 700; font-family: var(--serif); color: var(--text-primary); }
+.hstat-l-m { font-size: 11px; color: var(--text-secondary); margin-top: 4px; }
+
+/* History table rows */
+.htrow-m {
+  background: var(--bg-card); border-radius: 12px;
+  margin-bottom: 8px; padding: 12px 14px;
+  box-shadow: var(--shadow-card);
+}
+.htrow-m-main { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
+.htrow-m-sub { font-size: 11px; color: var(--text-secondary); }
+.htrow-m-stats {
+  display: flex; gap: 10px; align-items: center; margin-top: 8px; flex-wrap: wrap;
+}
+.htrow-m-stat { font-size: 12px; color: var(--text-secondary); }
+.htrow-m-stat b { color: var(--text-primary); }
+.pct-pill-m {
+  display: inline-block; padding: 3px 9px; border-radius: 20px;
+  font-size: 12px; font-weight: 700; font-family: var(--sans);
+}
+.pct-pill-m.excellent { background: var(--pct-excellent-bg); color: var(--pct-excellent-txt); }
+.pct-pill-m.good      { background: var(--pct-good-bg);      color: var(--pct-good-txt); }
+.pct-pill-m.review    { background: var(--pct-review-bg);    color: var(--pct-review-txt); }
+.pct-pill-m.poor      { background: var(--pct-poor-bg);      color: var(--pct-poor-txt); }
+
+/* Revisão/simulado badge */
+.tipo-badge-m {
+  display: inline-block; font-size: 10px; font-weight: 700;
+  padding: 2px 6px; border-radius: 5px; margin-left: 4px;
+}
+.tipo-badge-m.revisao  { background: rgba(251,191,36,0.2); color: #D97706; }
+.tipo-badge-m.simulado { background: rgba(99,102,241,0.2); color: #6366F1; }
+
+/* ═══════════════════════════════════════════════
+   MODALS (full-screen on mobile)
+═══════════════════════════════════════════════ */
+.m-modal-overlay {
+  position: fixed; inset: 0; z-index: 500;
+  background: rgba(0,0,0,0.6);
+  display: flex; align-items: flex-end;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.25s;
+}
+.m-modal-overlay.open { opacity: 1; pointer-events: all; }
+.m-modal-sheet {
+  background: var(--bg-card); border-radius: 20px 20px 0 0;
+  width: 100%; max-height: 90dvh;
+  overflow-y: auto; padding: 0 0 calc(20px + env(safe-area-inset-bottom));
+  transform: translateY(100%); transition: transform 0.3s ease;
+}
+.m-modal-overlay.open .m-modal-sheet { transform: translateY(0); }
+.m-modal-handle {
+  width: 40px; height: 4px; background: var(--border-input);
+  border-radius: 2px; margin: 12px auto 16px;
+}
+.m-modal-title {
+  font-family: var(--serif); font-size: 17px; font-weight: 700;
+  color: var(--text-primary); padding: 0 20px 4px;
+}
+.m-modal-sub { font-size: 13px; color: var(--text-secondary); padding: 0 20px 16px; }
+.m-modal-body { padding: 0 20px; }
+.m-modal-label {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--text-secondary);
+  display: block; margin-bottom: 6px; margin-top: 16px;
+}
+.m-modal-input {
+  width: 100%; padding: 12px 14px; border-radius: 12px;
+  border: 1.5px solid var(--border-input);
+  background: var(--bg-app); color: var(--text-primary);
+  font-family: var(--sans); font-size: 14px;
+  -webkit-appearance: none;
+}
+.m-modal-input:focus { outline: none; border-color: var(--blue); }
+.m-modal-input[readonly] { opacity: 0.6; background: var(--bg-format-hint); }
+.m-modal-actions {
+  padding: 16px 20px 0; display: flex; flex-direction: column; gap: 8px;
+}
+.btn-m-modal-save {
+  width: 100%; padding: 15px; border: none; border-radius: 12px;
+  background: var(--blue); color: #fff;
+  font-family: var(--serif); font-size: 15px; font-weight: 700; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-m-modal-cancel {
+  width: 100%; padding: 13px; border-radius: 12px;
+  border: 1.5px solid var(--border-input);
+  background: transparent; color: var(--text-secondary);
+  font-family: var(--sans); font-size: 14px; font-weight: 600; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-m-modal-clear {
+  width: 100%; padding: 13px; border-radius: 12px;
+  border: 1.5px solid var(--red);
+  background: var(--red-light); color: var(--red);
+  font-family: var(--sans); font-size: 14px; font-weight: 600; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.m-modal-status { font-size: 13px; text-align: center; min-height: 18px; padding: 8px 20px 0; }
+
+/* ═══ QVIEW MODAL ═══ */
+.m-qview-overlay {
+  position: fixed; inset: 0; z-index: 600;
+  background: var(--bg-card);
+  display: none; flex-direction: column;
+  overflow-y: auto;
+}
+.m-qview-overlay.open { display: flex; }
+.m-qview-header {
+  background: var(--bg-header); padding: 14px 16px;
+  position: sticky; top: 0; z-index: 10;
+}
+.m-qview-header-row {
+  display: flex; align-items: center; justify-content: space-between;
+}
+.m-qview-id { font-family: var(--serif); font-size: 14px; font-weight: 700; color: var(--text-header); }
+.m-qview-meta { font-size: 11px; color: var(--text-header-sub); margin-top: 3px; }
+.m-qview-body { padding: 16px; flex: 1; }
+.m-qview-section-label {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--text-secondary); margin-bottom: 8px; margin-top: 14px;
+}
+.m-qview-enunciado {
+  font-family: var(--serif); font-size: 15px; line-height: 1.7;
+  color: var(--text-primary); white-space: pre-wrap;
+}
+.m-qview-opts { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.m-qview-opt {
+  padding: 10px 12px; border-radius: 10px;
+  border: 1.5px solid var(--border-input);
+  background: var(--bg-btn-mc); font-family: var(--serif); font-size: 14px;
+  display: flex; gap: 8px; color: var(--text-primary);
+}
+.m-qview-opt.gabarito { border-color: var(--green); background: var(--green-light); }
+.m-qview-comentario {
+  font-family: var(--serif); font-size: 14px; line-height: 1.65;
+  color: var(--text-secondary); background: var(--bg-format-hint);
+  border-left: 3px solid var(--blue-mid);
+  padding: 12px 14px; border-radius: 0 10px 10px 0;
+  white-space: pre-wrap;
+}
+.m-qview-dica {
+  font-family: var(--serif); font-size: 14px; line-height: 1.65;
+  color: #7C4A00; background: #FFFDE7;
+  border-left: 3px solid #F9A825;
+  padding: 12px 14px; border-radius: 0 10px 10px 0;
+  white-space: pre-wrap;
+}
+[data-theme="dark"] .m-qview-dica { background: #2A2200; color: #FFD54F; }
+.m-qview-ce-badge {
+  display: inline-block; padding: 8px 18px; border-radius: 10px;
+  font-size: 15px; font-weight: 700; font-family: var(--sans); margin-top: 10px;
+}
+.m-qview-footer {
+  padding: 14px 16px calc(14px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--border-input);
+  position: sticky; bottom: 0; background: var(--bg-card);
+}
+
+/* ═══ CONFIRM MODAL ═══ */
+.m-confirm-overlay {
+  position: fixed; inset: 0; z-index: 700;
+  background: rgba(0,0,0,0.6);
+  display: none; align-items: center; justify-content: center;
+  padding: 24px;
+}
+.m-confirm-overlay.open { display: flex; }
+.m-confirm-box {
+  background: var(--bg-card); border-radius: 20px;
+  padding: 28px 24px; width: 100%; max-width: 340px; text-align: center;
+}
+.m-confirm-icon { font-size: 36px; margin-bottom: 12px; }
+.m-confirm-title { font-family: var(--serif); font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; }
+.m-confirm-sub { font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 20px; }
+.m-confirm-btns { display: flex; flex-direction: column; gap: 8px; }
+.btn-m-confirm-yes {
+  padding: 14px; border: none; border-radius: 12px;
+  background: var(--red); color: #fff;
+  font-family: var(--serif); font-size: 15px; font-weight: 700; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-m-confirm-no {
+  padding: 13px; border-radius: 12px;
+  border: 1.5px solid var(--border-input);
+  background: transparent; color: var(--text-secondary);
+  font-family: var(--sans); font-size: 14px; font-weight: 600; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ═══ BANCO MODAL ═══ */
+.m-banco-overlay {
+  position: fixed; inset: 0; z-index: 500;
+  background: rgba(0,0,0,0.6);
+  display: none; align-items: flex-end;
+}
+.m-banco-overlay.open { display: flex; }
+.m-banco-sheet {
+  background: var(--bg-card); border-radius: 20px 20px 0 0;
+  width: 100%; max-height: 92dvh; display: flex; flex-direction: column;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.m-banco-header {
+  padding: 12px 20px 16px; border-bottom: 1px solid var(--border-input); flex-shrink: 0;
+}
+.m-banco-handle { width: 40px; height: 4px; background: var(--border-input); border-radius: 2px; margin: 0 auto 14px; }
+.m-banco-title { font-family: var(--serif); font-size: 17px; font-weight: 700; color: var(--text-primary); }
+.m-banco-sub { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+.m-banco-tabs {
+  display: grid; grid-template-columns: repeat(3,1fr); gap: 3px;
+  background: rgba(0,0,0,0.07); border-radius: 10px; padding: 3px; margin-top: 12px;
+}
+[data-theme="dark"] .m-banco-tabs { background: rgba(255,255,255,0.06); }
+.m-banco-tab {
+  padding: 8px 4px; border: none; border-radius: 8px;
+  background: transparent; color: var(--text-secondary);
+  font-family: var(--sans); font-size: 11px; font-weight: 600;
+  cursor: pointer; text-align: center;
+  -webkit-tap-highlight-color: transparent;
+  transition: all 0.2s;
+}
+.m-banco-tab.active {
+  background: var(--tab-active-bg); color: var(--tab-active-txt);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+}
+.m-banco-body { flex: 1; overflow-y: auto; padding: 16px 20px; }
+.m-banco-tab-panel { display: none; }
+.m-banco-tab-panel.active { display: block; }
+.m-disc-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 12px; border-radius: 20px; margin: 3px;
+  border: 1.5px solid var(--border-input);
+  background: var(--bg-btn-mc); color: var(--text-secondary);
+  font-size: 12px; font-weight: 600; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: all 0.15s;
+}
+.m-disc-chip.selected {
+  border-color: var(--blue); background: var(--blue-light); color: var(--blue);
+}
+.m-chip-count {
+  background: var(--blue); color: #fff;
+  font-size: 10px; padding: 1px 5px; border-radius: 10px; font-weight: 700;
+}
+.m-disc-chip.selected .m-chip-count { background: var(--blue); }
+.m-sim-label {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--text-secondary);
+  display: block; margin-bottom: 8px; margin-top: 14px;
+}
+.m-sim-label:first-child { margin-top: 0; }
+.m-rand-row {
+  display: flex; align-items: center; gap: 10px; padding: 10px 0;
+}
+.m-rand-input {
+  width: 70px; padding: 10px; border-radius: 10px;
+  border: 1.5px solid var(--border-input);
+  background: var(--bg-app); color: var(--text-primary);
+  font-size: 15px; text-align: center;
+  -webkit-appearance: none;
+}
+.m-sim-info {
+  padding: 10px 12px; border-radius: 10px;
+  background: var(--bg-format-hint); border: 1px solid var(--border-input);
+  font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;
+}
+.btn-m-banco {
+  width: 100%; padding: 15px; border: none; border-radius: 12px;
+  background: var(--blue); color: #fff;
+  font-family: var(--serif); font-size: 15px; font-weight: 700;
+  cursor: pointer; margin-top: 4px;
+  -webkit-tap-highlight-color: transparent;
+}
+.m-avulsa-textarea {
+  width: 100%; padding: 12px 14px; border-radius: 12px;
+  border: 1.5px solid var(--border-input);
+  background: var(--bg-app); color: var(--text-primary);
+  font-family: var(--sans); font-size: 13px; line-height: 1.5;
+  resize: vertical; min-height: 160px;
+}
+.m-avulsa-status { font-size: 13px; margin-top: 8px; min-height: 18px; }
+.m-avulsa-status.ok { color: var(--green); }
+.m-avulsa-status.err { color: var(--red); }
+.m-avulsa-status.loading { color: var(--gold); }
+
+/* ═══ HIST-GAB OVERLAY ═══ */
+.m-histgab-overlay {
+  position: fixed; inset: 0; z-index: 600;
+  background: var(--bg-app);
+  display: none; flex-direction: column; overflow-y: auto;
+}
+.m-histgab-overlay.open { display: flex; }
+.m-histgab-header {
+  background: var(--bg-header); padding: 14px 16px;
+  position: sticky; top: 0; z-index: 10;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.m-histgab-title { font-family: var(--serif); font-size: 15px; font-weight: 700; color: var(--text-header); }
+.m-histgab-sub { font-size: 11px; color: var(--text-header-sub); margin-top: 2px; }
+.m-histgab-body { padding: 12px; flex: 1; }
+.m-histgab-row {
+  background: var(--bg-card); border-radius: 12px; margin-bottom: 8px;
+  padding: 12px 14px; box-shadow: var(--shadow-card);
+  display: grid; grid-template-columns: 1fr auto auto auto auto;
+  gap: 8px; align-items: center;
+}
+
+/* ═══ IDS MODAL ═══ */
+.m-ids-overlay {
+  position: fixed; inset: 0; z-index: 600;
+  background: rgba(0,0,0,0.6);
+  display: none; align-items: flex-end;
+}
+.m-ids-overlay.open { display: flex; }
+.m-ids-sheet {
+  background: var(--bg-card); border-radius: 20px 20px 0 0;
+  width: 100%; padding: 12px 20px calc(20px + env(safe-area-inset-bottom));
+}
+.m-ids-handle { width: 40px; height: 4px; background: var(--border-input); border-radius: 2px; margin: 0 auto 14px; }
+.m-ids-title { font-family: var(--serif); font-size: 16px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; }
+.m-ids-hint { font-size: 13px; color: var(--text-secondary); margin-bottom: 12px; line-height: 1.5; }
+.m-ids-textarea {
+  width: 100%; padding: 12px 14px; border-radius: 12px;
+  border: 1.5px solid var(--border-input);
+  background: var(--bg-app); color: var(--text-primary);
+  font-family: var(--sans); font-size: 14px; min-height: 100px; resize: none;
+}
+.m-ids-btns { display: flex; gap: 8px; margin-top: 12px; }
+.btn-m-ids-apply {
+  flex: 1; padding: 14px; border: none; border-radius: 12px;
+  background: var(--blue); color: #fff;
+  font-family: var(--sans); font-size: 14px; font-weight: 700; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-m-ids-clear {
+  padding: 14px 20px; border-radius: 12px;
+  border: 1.5px solid var(--border-input);
+  background: transparent; color: var(--text-secondary);
+  font-family: var(--sans); font-size: 14px; font-weight: 600; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ═══ BACK TO GAB BAR ═══ */
+.m-back-gab-bar {
+  display: none; align-items: center; justify-content: center;
+  padding: 8px 16px; background: rgba(200,150,12,0.15);
+  border-bottom: 1px solid rgba(200,150,12,0.3);
+}
+.m-back-gab-bar.visible { display: flex; }
+.btn-m-back-gab {
+  background: transparent; border: 1.5px solid var(--gold); color: var(--gold);
+  border-radius: 10px; padding: 7px 16px;
+  font-size: 13px; font-weight: 700; cursor: pointer;
+  font-family: var(--sans);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ═══ THEME MENU ═══ */
+.m-theme-menu {
+  position: fixed; bottom: calc(16px + env(safe-area-inset-bottom)); right: 16px;
+  z-index: 300; display: flex; flex-direction: column; gap: 8px; align-items: flex-end;
+}
+.m-theme-opts {
+  display: none; flex-direction: column; gap: 6px; align-items: flex-end;
+}
+.m-theme-opts.open { display: flex; }
+.m-theme-opt {
+  background: var(--bg-card); border: 1.5px solid var(--border-input);
+  border-radius: 12px; padding: 10px 16px;
+  font-family: var(--sans); font-size: 13px; font-weight: 600;
+  color: var(--text-primary); cursor: pointer;
+  display: flex; align-items: center; gap: 8px;
+  box-shadow: var(--shadow-card);
+  -webkit-tap-highlight-color: transparent;
+  white-space: nowrap;
+}
+.m-fab-theme {
+  width: 48px; height: 48px; border-radius: 50%;
+  background: var(--bg-card); border: 1.5px solid var(--border-input);
+  font-size: 22px; cursor: pointer; box-shadow: var(--shadow-card);
+  display: flex; align-items: center; justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+}
+.theme-dot-m {
+  width: 14px; height: 14px; border-radius: 50%;
+}
+.theme-dot-m.default { background: #2563EB; }
+.theme-dot-m.dark    { background: #152030; border: 2px solid #7FB8E8; }
+.theme-dot-m.sepia   { background: #C8A882; }
+
+/* ═══ EMPTY STATE ═══ */
+.m-empty {
+  text-align: center; padding: 40px 20px; color: var(--text-secondary);
+}
+.m-empty span { font-size: 36px; display: block; margin-bottom: 12px; }
+.m-empty p { font-size: 14px; line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<!-- ════════ MODALS ════════ -->
+
+<!-- Config Modal -->
+<div class="m-modal-overlay" id="config-modal">
+  <div class="m-modal-sheet">
+    <div class="m-modal-handle"></div>
+    <div class="m-modal-title">⚙️ Google Sheets</div>
+    <div class="m-modal-sub">Carregue o JSON da Service Account ou preencha manualmente.</div>
+    <div class="m-modal-body">
+      <label class="m-modal-label">📂 Arquivo JSON</label>
+      <input type="file" class="m-modal-input" id="cfg-json-file" accept=".json" style="padding:10px">
+      <label class="m-modal-label">ID da Planilha</label>
+      <input class="m-modal-input" id="cfg-sheet-id" placeholder="ID da sua planilha">
+      <label class="m-modal-label">Client Email</label>
+      <input class="m-modal-input" id="cfg-client-email" placeholder="Carregue o JSON..." readonly>
+      <label class="m-modal-label">Private Key</label>
+      <textarea class="m-modal-input" id="cfg-private-key" rows="2" placeholder="Carregue o JSON..." readonly style="resize:none"></textarea>
+      <div id="cfg-key-status" style="font-size:12px;color:var(--text-secondary);margin-top:4px"></div>
+    </div>
+    <div class="m-modal-actions">
+      <button class="btn-m-modal-save"   onclick="saveConfig()">✅ Salvar</button>
+      <button class="btn-m-modal-cancel" onclick="closeConfig()">Cancelar</button>
+      <button class="btn-m-modal-clear"  onclick="clearConfig()">🗑 Limpar configuração</button>
+    </div>
+    <div class="m-modal-status" id="config-status"></div>
+  </div>
+</div>
+
+<!-- Confirm Restart Modal -->
+<div class="m-confirm-overlay" id="confirm-restart-modal">
+  <div class="m-confirm-box">
+    <div class="m-confirm-icon">↺</div>
+    <div class="m-confirm-title">Reiniciar o caderno?</div>
+    <div class="m-confirm-sub">O progresso atual será apagado. As questões serão reiniciadas do zero.</div>
+    <div class="m-confirm-btns">
+      <button class="btn-m-confirm-yes" onclick="doRestartQuiz()">Reiniciar</button>
+      <button class="btn-m-confirm-no"  onclick="closeRestartModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- IDs Filter Modal -->
+<div class="m-ids-overlay" id="ids-modal">
+  <div class="m-ids-sheet">
+    <div class="m-ids-handle"></div>
+    <div class="m-ids-title">🔍 Filtrar por ID</div>
+    <div class="m-ids-hint">Cole os IDs separados por vírgula, espaço ou linha. Deixe em branco para usar todas.</div>
+    <textarea class="m-ids-textarea" id="ids-field" placeholder="Q1, Q5, Q12, Q23 ..."></textarea>
+    <div class="m-ids-btns">
+      <button class="btn-m-ids-apply" onclick="applyIdsFilter()">✓ Aplicar</button>
+      <button class="btn-m-ids-clear"  onclick="closeIdsModal()">✕ Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Hist Gab Overlay -->
+<div class="m-histgab-overlay" id="hist-gab-modal">
+  <div class="m-histgab-header">
+    <div>
+      <div class="m-histgab-title" id="hist-gab-title">Gabarito da Sessão</div>
+      <div class="m-histgab-sub"   id="hist-gab-sub">—</div>
+    </div>
+    <button class="btn-m-back" onclick="closeHistGab()">← Fechar</button>
+  </div>
+  <div class="m-histgab-body" id="hist-gab-body">
+    <div class="m-empty"><span>⏳</span><p>Carregando...</p></div>
+  </div>
+</div>
+
+<!-- QView Overlay -->
+<div class="m-qview-overlay" id="qview-modal">
+  <div class="m-qview-header">
+    <div class="m-qview-header-row">
+      <span class="m-qview-id" id="qview-id">—</span>
+      <button class="btn-m-back" onclick="closeQview()">← Fechar</button>
+    </div>
+    <div class="m-qview-meta" id="qview-meta">—</div>
+    <div id="qview-tag-row" style="margin-top:4px"></div>
+  </div>
+  <div class="m-qview-body" id="qview-body">
+    <div class="m-empty"><span>⏳</span><p>Carregando...</p></div>
+  </div>
+  <div id="qview-footer" style="display:none">
+    <div class="m-qview-footer">
+      <button id="qview-delete-btn" onclick="excluirQuestaoNoBanco()" style="width:100%;padding:14px;background:var(--red-light);border:1.5px solid var(--red);color:var(--red);border-radius:12px;font-family:var(--serif);font-size:15px;font-weight:700;cursor:pointer">🗑 Excluir do Banco</button>
+    </div>
+  </div>
+</div>
+
+<!-- Banco Modal -->
+<div class="m-banco-overlay" id="banco-modal">
+  <div class="m-banco-sheet">
+    <div class="m-banco-header">
+      <div class="m-banco-handle"></div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <div class="m-banco-title">🎯 Banco de Questões</div>
+          <div class="m-banco-sub" id="banco-modal-sub">—</div>
+        </div>
+        <button class="btn-m-back" onclick="closeBancoModal()" style="background:transparent;border:1.5px solid var(--border-input);color:var(--text-secondary)">✕</button>
+      </div>
+      <div class="m-banco-tabs">
+        <button class="m-banco-tab active" onclick="switchBancoTab('gerar')">🎯 Gerar</button>
+        <button class="m-banco-tab" onclick="switchBancoTab('revisar')">🔁 Revisar</button>
+        <button class="m-banco-tab" onclick="switchBancoTab('avulsa')">➕ Avulsa</button>
+      </div>
+    </div>
+    <div class="m-banco-body">
+      <!-- Gerar Simulado -->
+      <div class="m-banco-tab-panel active" id="banco-panel-gerar">
+        <div class="m-sim-label">Filtrar por disciplina</div>
+        <div id="sim-disc-grid" style="margin-bottom:12px">
+          <span style="font-size:13px;color:var(--text-secondary);font-style:italic">⏳ Carregando...</span>
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:14px">
+          <button onclick="selectAllDiscs(true)"  style="flex:1;padding:9px;border-radius:10px;border:1.5px solid var(--border-input);background:var(--bg-btn-mc);font-size:12px;font-weight:600;color:var(--text-secondary);cursor:pointer">✓ Todas</button>
+          <button onclick="selectAllDiscs(false)" style="flex:1;padding:9px;border-radius:10px;border:1.5px solid var(--border-input);background:var(--bg-btn-mc);font-size:12px;font-weight:600;color:var(--text-secondary);cursor:pointer">✕ Nenhuma</button>
+        </div>
+        <div class="m-sim-label">Quantidade aleatória (opcional)</div>
+        <div class="m-rand-row">
+          <input type="checkbox" id="sim-rand-check" onchange="toggleRandQty()" style="width:20px;height:20px">
+          <label style="font-size:14px;color:var(--text-secondary)">Sortear</label>
+          <input type="number" class="m-rand-input" id="sim-rand-qty" placeholder="30" disabled>
+          <span style="font-size:13px;color:var(--text-secondary)">questões</span>
+        </div>
+        <div class="m-sim-info" id="sim-info-bar">—</div>
+        <div style="font-size:12px;color:var(--text-secondary);margin-bottom:8px" id="sim-status"></div>
+        <button class="btn-m-banco" onclick="gerarSimuladoTxt()">⬇ Baixar .txt do Simulado</button>
+      </div>
+      <!-- Revisar Caderno -->
+      <div class="m-banco-tab-panel" id="banco-panel-revisar">
+        <div class="m-sim-label">Seus cadernos no banco</div>
+        <div id="revisar-caderno-list">
+          <div class="m-empty"><span>📭</span><p>Banco vazio.</p></div>
+        </div>
+        <div style="font-size:12px;color:var(--text-secondary);margin-top:8px" id="revisar-status"></div>
+      </div>
+      <!-- Questões Avulsas -->
+      <div class="m-banco-tab-panel" id="banco-panel-avulsa">
+        <div class="m-sim-label">Disciplina</div>
+        <input class="m-modal-input" id="avulsa-disc" placeholder="Ex: DIR CONST" style="margin-bottom:12px;text-transform:uppercase">
+        <div class="m-sim-label">Questão(ões) no formato CQS</div>
+        <textarea class="m-avulsa-textarea" id="avulsa-txt" placeholder="QUESTÃO Q99&#10;Banca: FGV | Cargo: OAB | Ano: 2024 | Tema: ...&#10;Tipo: CE&#10;Enunciado: Texto aqui.&#10;Gabarito: CERTO&#10;Comentário:&#10;---"></textarea>
+        <div class="m-avulsa-status" id="avulsa-status"></div>
+        <button class="btn-m-banco" onclick="salvarQuestaoAvulsa()" style="margin-top:12px">💾 Salvar no Banco</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Theme Menu FAB -->
+<div class="m-theme-menu" id="theme-menu-fab">
+  <div class="m-theme-opts" id="theme-opts">
+    <button class="m-theme-opt" onclick="setTheme('default')"><span class="theme-dot-m default"></span> Padrão</button>
+    <button class="m-theme-opt" onclick="setTheme('dark')"><span class="theme-dot-m dark"></span> Noturno</button>
+    <button class="m-theme-opt" onclick="setTheme('sepia')"><span class="theme-dot-m sepia"></span> Sépia</button>
+  </div>
+  <button class="m-fab-theme" onclick="toggleThemeMenu()">🎨</button>
+</div>
+
+<!-- ════════════════════════════════════════ SETUP SCREEN -->
+<div id="setup-screen">
+  <div class="setup-header">
+    <div class="setup-header-logo">
+      <div class="setup-header-logo-icon">📚</div>
+      <div>
+        <h1>CQS Universal</h1>
+        <p>Caderno de Questões Selecionadas</p>
+      </div>
+    </div>
+    <div class="setup-header-actions">
+      <button class="btn-icon" onclick="historyFrom='setup';showHistory()" title="Histórico">📊</button>
+      <button class="btn-icon" onclick="openConfig()" title="Configurações">⚙️</button>
+    </div>
+  </div>
+  <div class="setup-body">
+    <div>
+      <div class="setup-section-label">1. Arquivo de questões (.txt)</div>
+      <div class="upload-zone" id="upload-zone">
+        <input type="file" id="file-input" accept=".txt">
+        <div id="upload-idle">
+          <div class="upload-icon">📄</div>
+          <p><strong>Toque para selecionar</strong> o arquivo .txt<br>
+          <span style="font-size:12px">Formato CQS Universal</span></p>
+        </div>
+        <div id="upload-done" style="display:none">
+          <div class="upload-icon">✅</div>
+          <p class="file-name" id="file-name-label"></p>
+          <p class="file-count" id="file-count-label"></p>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="setup-section-label">2. Título do caderno (opcional)</div>
+      <input type="text" class="title-input" id="title-field" placeholder="ex: CQS - DCON - AULA 00">
+    </div>
+    <div>
+      <button class="btn-filter-ids" id="btn-filter-ids" onclick="openIdsModal()">
+        🔍 Filtrar questões por ID <span id="ids-filter-count" style="display:none"></span>
+      </button>
+    </div>
+    <div class="setup-error" id="setup-error"></div>
+    <button class="btn-generate" id="btn-generate" onclick="startQuiz()">Gerar Caderno →</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════ QUIZ SCREEN -->
+<div id="quiz-screen">
+  <div class="quiz-topbar">
+    <div class="quiz-topbar-left">
+      <div class="quiz-logo-m">CQS</div>
+      <div class="quiz-title-m" id="quiz-title-display"></div>
+    </div>
+    <div class="quiz-badges">
+      <div class="m-badge m-badge-total"   id="badge-total">0/0</div>
+      <div class="m-badge m-badge-correct" id="badge-correct">✓ 0</div>
+      <div class="m-badge m-badge-wrong"   id="badge-wrong">✗ 0</div>
+      <button class="btn-icon" style="width:34px;height:34px;font-size:16px" onclick="goHome()" title="Início">🏠</button>
+    </div>
+  </div>
+
+  <div class="m-back-gab-bar" id="back-to-gabarito-bar">
+    <button class="btn-m-back-gab" onclick="voltarAoGabarito()">← Voltar ao Gabarito</button>
+  </div>
+
+  <div class="quiz-body-m">
+    <div class="m-progress">
+      <div class="m-progress-meta">
+        <span id="progress-label">Questão 1 de N</span>
+        <span id="progress-pct">0%</span>
+      </div>
+      <div class="m-progress-bar">
+        <div class="m-progress-fill" id="progress-bar" style="width:0%"></div>
+      </div>
+    </div>
+    <div id="q-card"></div>
+  </div>
+
+  <!-- Bottom bar fixed -->
+  <div class="m-bottom-bar" id="m-bottom-bar">
+    <div class="m-bottom-bar-top" id="m-bar-top">
+      <button class="btn-m-confirm" id="btn-confirm" onclick="confirmAnswer()" disabled>Confirmar</button>
+    </div>
+    <div class="m-bottom-bar-bottom" id="m-bar-bottom" style="display:none">
+      <button class="btn-m-duvida" id="btn-duvida" onclick="toggleDuvidosa()">🏳 Marcar dúvida</button>
+      <button class="btn-m-next" id="btn-next" onclick="nextQuestion()">Próxima →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════ RESULT SCREEN -->
+<div id="result-screen" style="flex-direction:column;align-items:center;justify-content:center">
+  <div class="m-result-card">
+    <span class="m-result-emoji" id="result-emoji">🎓</span>
+    <div class="m-result-title"    id="result-title">Parabéns!</div>
+    <div class="m-result-subtitle" id="result-subtitle">Caderno concluído</div>
+    <div class="m-result-pct"      id="result-pct">--</div>
+    <div class="m-result-label">de aproveitamento</div>
+    <div class="m-result-stats">
+      <div class="m-result-stat">
+        <div class="m-result-stat-n" id="rs-total">0</div>
+        <div class="m-result-stat-l">Total</div>
+      </div>
+      <div class="m-result-stat">
+        <div class="m-result-stat-n" id="rs-correct" style="color:var(--green)">0</div>
+        <div class="m-result-stat-l">Acertos</div>
+      </div>
+      <div class="m-result-stat">
+        <div class="m-result-stat-n" id="rs-wrong" style="color:var(--red)">0</div>
+        <div class="m-result-stat-l">Erros</div>
+      </div>
+    </div>
+    <div class="m-save-status" id="save-status"></div>
+    <div class="m-result-btns">
+      <button class="btn-m-result" id="btn-res-gab"  style="background:var(--gold)"       onclick="showGabarito()">📋 Ver Gabarito</button>
+      <button class="btn-m-result" id="btn-res-hist" style="background:var(--bg-header)"  onclick="showHistory()">📊 Histórico</button>
+      <button class="btn-m-result" id="btn-res-home" style="background:#37474F"           onclick="goHome()">🏠 Início</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════ GABARITO SCREEN -->
+<div id="gabarito-screen">
+  <div class="gab-header-m">
+    <div>
+      <div class="gab-header-m-title">📋 Gabarito</div>
+      <div class="gab-header-m-sub" id="gabarito-header-sub">—</div>
+    </div>
+    <button class="btn-m-back" onclick="backToResult()">← Resultado</button>
+  </div>
+  <div class="gab-body-m" id="gabarito-rows"></div>
+</div>
+
+<!-- ════════════════════════════════════════ HISTORY SCREEN -->
+<div id="history-screen">
+  <div class="hist-header-m">
+    <div class="hist-header-m-top">
+      <div class="m-histgab-title">📊 Histórico</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn-m-back" onclick="openBancoModal()" style="background:rgba(200,150,12,0.2);border-color:rgba(200,150,12,0.4);color:#FFD54F">🎯 Banco</button>
+        <button class="btn-m-back" onclick="closeHistory()">← Voltar</button>
+      </div>
+    </div>
+    <div class="hist-tabs-m">
+      <button class="hist-tab-m active" onclick="switchTab('geral')">🌐 Geral</button>
+      <button class="hist-tab-m" onclick="switchTab('disciplina')">📚 Disc.</button>
+      <button class="hist-tab-m" onclick="switchTab('aula')">📖 Aula</button>
+      <button class="hist-tab-m" onclick="switchTab('sessoes')">🗓 Sessões</button>
+    </div>
+  </div>
+  <div class="hist-body-m" id="history-content"></div>
+</div>
+
+
+<script>
+// ═══════════════════════════════════════════════════════════
+//  TEMA
+// ═══════════════════════════════════════════════════════════
+let _themeMenuOpen = false;
+function toggleThemeMenu() {
+  _themeMenuOpen = !_themeMenuOpen;
+  document.getElementById('theme-opts').classList.toggle('open', _themeMenuOpen);
+}
+function setTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  localStorage.setItem('cqs-theme', t);
+  _themeMenuOpen = false;
+  document.getElementById('theme-opts').classList.remove('open');
+}
+(function(){ const t = localStorage.getItem('cqs-theme'); if (t) document.documentElement.setAttribute('data-theme', t); })();
+
+document.addEventListener('click', function(e) {
+  if (_themeMenuOpen && !document.getElementById('theme-menu-fab').contains(e.target)) {
+    _themeMenuOpen = false;
+    document.getElementById('theme-opts').classList.remove('open');
+  }
+});
+
+// ═══════════════════════════════════════════════════════════
+//  PARSER
+// ═══════════════════════════════════════════════════════════
+function parseQuestions(text) {
+  const questions = [];
+  const blocks = text.replace(/\r/g, '').split(/\n---\s*\n?/);
+  for (const block of blocks) {
+    const lines = block.trim().replace(/\r/g, '').split('\n');
+    if (!lines.length) continue;
+    const idLine = lines.find(l => /^QUESTÃO\s+/i.test(l.trim()) || /^Q\d+$/i.test(l.trim()));
+    if (!idLine) continue;
+    const id = idLine.trim().replace(/^QUESTÃO\s+/i, '').trim();
+    const metaLine = lines.find(l => /^Banca:/i.test(l.trim())) || '';
+    const meta = {};
+    metaLine.split('|').forEach(p => {
+      const [k, v] = p.split(':').map(s => s.trim());
+      if (k && v) meta[k.toLowerCase()] = v;
+    });
+    const tipoLine  = lines.find(l => /^Tipo:/i.test(l.trim())) || '';
+    const tipo      = tipoLine.replace(/^Tipo:/i, '').trim().toUpperCase();
+    const enuncIdx2 = lines.findIndex(l => /^Enunciado:/i.test(l.trim()));
+    let enunciado = '';
+    if (enuncIdx2 !== -1) {
+      const firstPart = lines[enuncIdx2].replace(/^Enunciado:/i, '').trim();
+      const subsequent = [];
+      for (let i = enuncIdx2 + 1; i < lines.length; i++) {
+        if (/^(Gabarito:|Comentário:|Dica:|[A-E]\) )/i.test(lines[i].trim())) break;
+        subsequent.push(lines[i]);
+      }
+      enunciado = [firstPart, ...subsequent].filter((l,i) => i === 0 || l.trim() !== '').join('\n').trim();
+    }
+    const gabLine   = lines.find(l => /^Gabarito:/i.test(l.trim())) || '';
+    const gabarito  = gabLine.replace(/^Gabarito:/i, '').trim().toUpperCase();
+    const comIdx = lines.findIndex(l => /^Comentário:/i.test(l.trim()));
+    let comentario = '';
+    if (comIdx !== -1) {
+      const firstPart = lines[comIdx].replace(/^Comentário:/i, '').trim();
+      const subsequent = [];
+      for (let i = comIdx + 1; i < lines.length; i++) {
+        if (/^(QUESTÃO|Banca:|Tipo:|Enunciado:|Gabarito:|Dica:|[A-E]\))/i.test(lines[i].trim())) break;
+        subsequent.push(lines[i]);
+      }
+      comentario = [firstPart, ...subsequent].join('\n').trim();
+    }
+    const dicaIdx = lines.findIndex(l => /^Dica:/i.test(l.trim()));
+    let dica = '';
+    if (dicaIdx !== -1) {
+      const firstPart = lines[dicaIdx].replace(/^Dica:/i, '').trim();
+      const subsequent = [];
+      for (let i = dicaIdx + 1; i < lines.length; i++) {
+        if (/^(QUESTÃO|Banca:|Tipo:|Enunciado:|Gabarito:|Comentário:|[A-E]\))/i.test(lines[i].trim())) break;
+        subsequent.push(lines[i]);
+      }
+      dica = [firstPart, ...subsequent].join('\n').trim();
+    }
+    const alternativas = [];
+    if (tipo === 'MULTIPLA') {
+      for (const line of lines) {
+        const m = line.trim().match(/^([A-E])\)\s*(.+)/);
+        if (m) alternativas.push({ letra: m[1], texto: m[2].trim() });
+      }
+    }
+    if (!id || !enunciado || !gabarito) continue;
+    questions.push({ id, meta, tipo, enunciado, gabarito, comentario, dica, alternativas });
+  }
+  return questions;
+}
+
+function parseFileName(name) {
+  let s = name || '';
+  let tipo = 'normal';
+  if (/^\[REVIS[ÃA]O\]/i.test(s)) { tipo = 'revisao'; s = s.replace(/^\[REVIS[ÃA]O\]\s*/i, '').trim(); }
+  else if (/^\[SIMULADO\]/i.test(s)) { tipo = 'simulado'; s = s.replace(/^\[SIMULADO\]\s*/i, '').trim(); }
+  s = s.replace(/^CQS\s*[-–]\s*/i, '').trim();
+  const m = s.match(/^([A-Z]{2,10})\s*[-–]?\s*AULA\s*(\d+)/i);
+  if (m) return { disciplina: m[1].toUpperCase(), aula: m[2].padStart(2,'0'), label: name, tipo };
+  if (tipo === 'simulado') return { disciplina: 'SIMULADO', aula: '—', label: name, tipo };
+  return { disciplina: s.toUpperCase() || 'SEM_DISC', aula: '—', label: name, tipo };
+}
+
+// ═══════════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════════
+let allQuestions      = [];
+let selectedQuestions = [];
+let current           = 0;
+let score             = { correct: 0, wrong: 0 };
+let answered          = [];
+let cadTitle          = '';
+let pendingChoice     = null;
+let duvidosas         = new Set();
+let fromGabarito      = false;
+let bancoEmSessao     = {};
+let _isSaving         = false;
+let historyData       = [];
+let historyFrom       = 'result';
+let currentHistoryTab = 'geral';
+let _bancoRows        = [];
+let _bancoDiscsSelected = new Set();
+const _gabBtnRegistry = {};
+let _gabBtnSeq        = 0;
+let _qviewCurrentId   = null;
+let uploadedFileName  = '';
+let fileText          = '';
+let _idsFilter        = null;
+
+// ═══════════════════════════════════════════════════════════
+//  SETUP
+// ═══════════════════════════════════════════════════════════
+const fileInput  = document.getElementById('file-input');
+const uploadZone = document.getElementById('upload-zone');
+const uploadIdle = document.getElementById('upload-idle');
+const uploadDone = document.getElementById('upload-done');
+
+fileInput.addEventListener('change', e => { const f = e.target.files[0]; if (f) readFile(f); });
+
+function readFile(f) {
+  const reader = new FileReader();
+  reader.onload = ev => {
+    fileText     = ev.target.result;
+    allQuestions = parseQuestions(fileText);
+    uploadIdle.style.display = 'none';
+    uploadDone.style.display = 'block';
+    uploadZone.classList.add('has-file');
+    uploadedFileName = f.name.replace(/\.txt$/i, '').trim();
+    document.getElementById('file-name-label').textContent  = f.name;
+    document.getElementById('file-count-label').textContent = `${allQuestions.length} questão(ões) encontrada(s)`;
+    const tf = document.getElementById('title-field');
+    if (!tf.value) tf.value = uploadedFileName;
+  };
+  reader.readAsText(f);
+}
+
+function showError(msg) {
+  const el = document.getElementById('setup-error');
+  el.textContent = msg;
+  setTimeout(() => { if (el.textContent === msg) el.textContent = ''; }, 4000);
+}
+
+function startQuiz() {
+  cadTitle = document.getElementById('title-field').value.trim() || uploadedFileName || 'Caderno';
+  if (!allQuestions.length) { showError('Carregue um arquivo .txt primeiro.'); return; }
+  selectedQuestions = _idsFilter
+    ? allQuestions.filter(q => _idsFilter.has(q.id.toUpperCase()))
+    : [...allQuestions];
+  if (!selectedQuestions.length) { showError('Nenhuma questão encontrada com esses IDs.'); return; }
+  current       = 0;
+  score         = { correct: 0, wrong: 0 };
+  answered      = new Array(selectedQuestions.length).fill(null);
+  pendingChoice = null;
+  duvidosas     = new Set();
+  bancoEmSessao = {};
+  fromGabarito  = false;
+  document.getElementById('quiz-title-display').textContent = cadTitle;
+  document.getElementById('setup-screen').style.display  = 'none';
+  document.getElementById('quiz-screen').style.display   = 'block';
+  renderQuestion();
+}
+
+function goHome() {
+  allQuestions = []; selectedQuestions = []; fileText = '';
+  uploadIdle.style.display = 'block'; uploadDone.style.display = 'none';
+  uploadZone.classList.remove('has-file'); fileInput.value = '';
+  document.getElementById('title-field').value = '';
+  _idsFilter = null;
+  ['quiz-screen','result-screen','gabarito-screen','history-screen'].forEach(id => {
+    document.getElementById(id).style.display = 'none';
+  });
+  document.getElementById('setup-screen').style.display = 'flex';
+}
+
+// ═══════════════════════════════════════════════════════════
+//  RENDER QUESTION (mobile)
+// ═══════════════════════════════════════════════════════════
+function escHtml(str) {
+  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function renderQuestion() {
+  const q   = selectedQuestions[current];
+  const n   = selectedQuestions.length;
+  const seq = current + 1;
+  const pct = Math.round((current / n) * 100);
+  const alreadyAnswered = answered[current];
+  const isDuvidosa = duvidosas.has(current);
+
+  document.getElementById('progress-label').textContent = `Questão ${seq} de ${n}`;
+  document.getElementById('progress-pct').textContent   = pct + '%';
+  document.getElementById('progress-bar').style.width   = pct + '%';
+  updateScoreBadges();
+
+  // Back to gabarito bar
+  document.getElementById('back-to-gabarito-bar').classList.toggle('visible', fromGabarito);
+
+  // Status badge
+  let statusHtml = '';
+  if (alreadyAnswered) {
+    statusHtml = alreadyAnswered.correct
+      ? '<span class="m-qstatus correct">✓ Correta</span>'
+      : '<span class="m-qstatus wrong">✗ Errada</span>';
+  }
+
+  const banca = q.meta['banca'] || '';
+  const cargo = q.meta['cargo'] || '';
+  const ano   = q.meta['ano']   || '';
+  const tema  = q.meta['tema']  || '';
+  const meta  = [banca, cargo, ano].filter(Boolean).join(' / ');
+
+  let tagHtml = '';
+  if (tema)      tagHtml += `<span class="m-qtag">🏷 ${escHtml(tema)}</span>`;
+  if (isDuvidosa) tagHtml += `<span class="m-qduvida">🚩 Dúvida</span>`;
+
+  // Enunciado
+  let enuncHtml = `<div class="m-enunciado">${escHtml(q.enunciado).replace(/\n/g,'<br>')}</div>`;
+
+  // Options
+  let optsHtml = '';
+  if (q.tipo === 'CE') {
+    const certoClass  = alreadyAnswered
+      ? (q.gabarito === 'CERTO'
+          ? (alreadyAnswered.chosen === 'CERTO' ? 'correct' : 'correct')
+          : (alreadyAnswered.chosen === 'CERTO' ? 'wrong'   : ''))
+      : (pendingChoice === 'CERTO' ? 'selected' : '');
+    const erradoClass = alreadyAnswered
+      ? (q.gabarito === 'ERRADO'
+          ? (alreadyAnswered.chosen === 'ERRADO' ? 'correct' : 'correct')
+          : (alreadyAnswered.chosen === 'ERRADO' ? 'wrong'   : ''))
+      : (pendingChoice === 'ERRADO' ? 'selected' : '');
+    const dis = alreadyAnswered ? 'disabled' : '';
+    optsHtml = `<div class="m-opts-ce">
+      <button class="m-btn-ce ${certoClass}"  ${dis} onclick="selectOption('CERTO')">✅ CERTO</button>
+      <button class="m-btn-ce ${erradoClass}" ${dis} onclick="selectOption('ERRADO')">❌ ERRADO</button>
+    </div>`;
+  } else if (q.tipo === 'MULTIPLA' && q.alternativas.length) {
+    optsHtml = '<div class="m-opts-mult">';
+    q.alternativas.forEach(alt => {
+      let cls = '';
+      if (alreadyAnswered) {
+        if (alt.letra === q.gabarito) cls = 'correct';
+        else if (alt.letra === alreadyAnswered.chosen && !alreadyAnswered.correct) cls = 'wrong';
+      } else if (pendingChoice === alt.letra) cls = 'selected';
+      const dis = alreadyAnswered ? 'disabled' : '';
+      optsHtml += `<button class="m-btn-mult ${cls}" ${dis} onclick="selectOption('${alt.letra}')">
+        <span class="opt-letra">${alt.letra}</span>
+        <span>${escHtml(alt.texto)}</span>
+      </button>`;
+    });
+    optsHtml += '</div>';
+  }
+
+  // Feedback
+  let feedbackHtml = '';
+  if (alreadyAnswered) {
+    const bCls  = alreadyAnswered.correct ? 'correct' : 'wrong';
+    const bIcon = alreadyAnswered.correct ? '🎉' : '😔';
+    const bMsg  = alreadyAnswered.correct ? 'Resposta correta!' : 'Resposta incorreta.';
+    const commentText = q.comentario || '[Sem comentário no material original]';
+    const panelId = 'comment-panel-' + current;
+    const isOpen  = alreadyAnswered._commentOpen ? 'open' : '';
+    const tipText = q.dica ? escHtml(q.dica).replace(/\n/g,'<br>') : generateTip(q);
+    feedbackHtml = `
+    <div class="m-feedback visible" style="margin:0 0 8px">
+      <div class="m-feedback-banner ${bCls}">
+        <span>${bIcon} ${bMsg}</span>
+        <button class="btn-m-ver-comentario" onclick="toggleComment('${panelId}',this)">
+          ${isOpen ? '▲ Ocultar' : '📝 Comentário'}
+        </button>
+      </div>
+      <div class="m-comment-panel ${isOpen}" id="${panelId}">
+        <div class="m-comment-block">
+          <div class="m-comment-title">📝 Comentário do professor</div>
+          <div class="m-comment-text">${escHtml(commentText)}</div>
+        </div>
+        <div class="m-tip-block">
+          <div class="m-tip-title">⚠ Dica &amp; Atenção</div>
+          <div class="m-tip-text">${tipText}</div>
+        </div>
+        <div class="m-gabarito-line">Gabarito: ${escHtml(q.gabarito)}</div>
+      </div>
+    </div>`;
+  }
+
+  document.getElementById('q-card').innerHTML = `
+    <div class="m-qcard">
+      <div class="m-qheader">
+        <div class="m-qheader-row1">
+          <span class="m-qseq">${seq}/${n}</span>
+          <span class="m-qid">(${escHtml(q.id)})</span>
+          ${statusHtml}
+        </div>
+        ${meta ? `<div class="m-qmeta">${escHtml(meta)}</div>` : ''}
+        ${tagHtml ? `<div class="m-qtag-row">${tagHtml}</div>` : ''}
+      </div>
+      ${feedbackHtml}
+      ${enuncHtml}
+      ${optsHtml}
+    </div>`;
+
+  // Bottom bar
+  const barTop    = document.getElementById('m-bar-top');
+  const barBottom = document.getElementById('m-bar-bottom');
+  const btnConfirm = document.getElementById('btn-confirm');
+  const btnDuvida  = document.getElementById('btn-duvida');
+  const btnNext    = document.getElementById('btn-next');
+
+  if (!alreadyAnswered) {
+    barTop.style.display    = 'flex';
+    barBottom.style.display = 'none';
+    btnConfirm.disabled = !pendingChoice;
+  } else {
+    barTop.style.display    = 'none';
+    barBottom.style.display = 'flex';
+    const isLast = current === n - 1;
+    btnNext.textContent = isLast ? 'Ver Resultado →' : 'Próxima →';
+    btnDuvida.textContent = isDuvidosa ? '🚩 Na dúvida' : '🏳 Marcar dúvida';
+    btnDuvida.className   = 'btn-m-duvida' + (isDuvidosa ? ' marcada' : '');
+  }
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function selectOption(val) {
+  if (answered[current]) return;
+  pendingChoice = val;
+  document.getElementById('btn-confirm').disabled = false;
+  renderQuestion();
+}
+
+function confirmAnswer() {
+  if (!pendingChoice || answered[current]) return;
+  const q = selectedQuestions[current];
+  const correct = (q.tipo === 'CE')
+    ? pendingChoice === q.gabarito
+    : pendingChoice.toUpperCase() === q.gabarito.toUpperCase();
+  answered[current] = { chosen: pendingChoice, correct, _commentOpen: false };
+  if (correct) score.correct++; else score.wrong++;
+  pendingChoice = null;
+  if (!correct) _autoSalvarNoBanco(current, 'erro');
+  renderQuestion();
+}
+
+function toggleDuvidosa() {
+  const q = selectedQuestions[current];
+  const parsed = parseFileName(uploadedFileName || cadTitle);
+  const idComposto = _makeIdComposto(parsed.disciplina, parsed.aula, q.id);
+  if (duvidosas.has(current)) {
+    duvidosas.delete(current);
+    const origem = bancoEmSessao[idComposto];
+    if (origem === 'duvida') { delete bancoEmSessao[idComposto]; _excluirDoBancoPorId(idComposto).catch(()=>{}); }
+    else if (origem === 'erro+duvida') { bancoEmSessao[idComposto] = 'erro'; _atualizarOrigemNoBanco(idComposto, 'erro').catch(()=>{}); }
+  } else {
+    duvidosas.add(current);
+    _autoSalvarNoBanco(current, 'duvida');
+  }
+  renderQuestion();
+}
+
+function toggleComment(panelId, btn) {
+  const panel = document.getElementById(panelId);
+  const isOpen = panel.classList.toggle('open');
+  btn.textContent = isOpen ? '▲ Ocultar' : '📝 Comentário';
+  if (answered[current]) answered[current]._commentOpen = isOpen;
+}
+
+function nextQuestion() {
+  if (current === selectedQuestions.length - 1) { showResult(); return; }
+  current++;
+  pendingChoice = null;
+  renderQuestion();
+}
+
+function updateScoreBadges() {
+  const n = selectedQuestions.length;
+  document.getElementById('badge-total').textContent   = `${current}/${n}`;
+  document.getElementById('badge-correct').textContent = `✓ ${score.correct}`;
+  document.getElementById('badge-wrong').textContent   = `✗ ${score.wrong}`;
+}
+
+function generateTip(q) {
+  const tema    = (q.meta['tema'] || '').toLowerCase();
+  const comment = (q.comentario  || '').toLowerCase();
+  const tips = [];
+  if (q.tipo === 'CE') tips.push('Leia cada palavra com atenção — termos como "sempre", "nunca", "apenas" e "somente" são frequentemente usados para tornar assertivas falsas.');
+  if (comment.includes('art.') || comment.includes('artigo')) tips.push('Esta questão fundamenta-se em dispositivo legal específico. Memorize o artigo — bancas frequentemente voltam ao mesmo ponto com variações de redação.');
+  if (comment.includes('jurisprudência') || comment.includes('súmula') || comment.includes('stf') || comment.includes('stj')) tips.push('Há embasamento jurisprudencial. Fique atento a enunciados de súmulas e teses firmadas.');
+  if (tema.includes('princípio') || comment.includes('princípio')) tips.push('Questões sobre princípios costumam testar conflitos e hierarquias entre eles.');
+  if (!tips.length) tips.push('Revise este tema no material de apoio e anote os pontos que geraram mais dúvida.');
+  return tips.join('<br><br>');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  RESULT
+// ═══════════════════════════════════════════════════════════
+function showResult() {
+  document.getElementById('quiz-screen').style.display   = 'none';
+  document.getElementById('result-screen').style.display = 'flex';
+  const n   = selectedQuestions.length;
+  const pct = n ? Math.round((score.correct / n) * 100) : 0;
+  let emoji, title, cls;
+  if      (pct >= 85) { emoji = '🏆'; title = 'Excelente!';      cls = 'excellent'; }
+  else if (pct >= 70) { emoji = '🎯'; title = 'Muito Bom!';      cls = 'good'; }
+  else if (pct >= 50) { emoji = '📖'; title = 'Bom esforço';     cls = 'review'; }
+  else                { emoji = '💪'; title = 'Precisa revisar'; cls = 'poor'; }
+  document.getElementById('result-emoji').textContent    = emoji;
+  document.getElementById('result-title').textContent    = title;
+  document.getElementById('result-subtitle').textContent = cadTitle;
+  document.getElementById('result-pct').textContent      = pct + '%';
+  document.getElementById('result-pct').className        = `m-result-pct ${cls}`;
+  document.getElementById('rs-total').textContent        = n;
+  document.getElementById('rs-correct').textContent      = score.correct;
+  document.getElementById('rs-wrong').textContent        = score.wrong;
+  document.getElementById('save-status').textContent     = '';
+  autoSaveResult(n, pct);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function setResultButtonsDisabled(disabled) {
+  ['btn-res-gab','btn-res-hist','btn-res-home'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.disabled = disabled;
+  });
+}
+
+function restartQuiz() {
+  current = 0; score = { correct: 0, wrong: 0 };
+  answered = new Array(selectedQuestions.length).fill(null);
+  pendingChoice = null; duvidosas = new Set();
+  bancoEmSessao = {}; fromGabarito = false;
+  document.getElementById('result-screen').style.display = 'none';
+  document.getElementById('quiz-screen').style.display   = 'block';
+  renderQuestion();
+}
+
+function askRestartQuiz()   { document.getElementById('confirm-restart-modal').classList.add('open'); }
+function closeRestartModal(){ document.getElementById('confirm-restart-modal').classList.remove('open'); }
+function doRestartQuiz()    { closeRestartModal(); restartQuiz(); }
+
+// ═══════════════════════════════════════════════════════════
+//  GABARITO
+// ═══════════════════════════════════════════════════════════
+function showGabarito() {
+  document.getElementById('result-screen').style.display   = 'none';
+  document.getElementById('gabarito-screen').style.display = 'block';
+  document.getElementById('gabarito-header-sub').textContent = cadTitle;
+  const container = document.getElementById('gabarito-rows');
+  container.innerHTML = selectedQuestions.map((q, i) => {
+    const ans = answered[i];
+    const res = ans ? (ans.correct ? 'c' : 'e') : '-';
+    const minha = ans ? ans.chosen : '—';
+    const duv   = duvidosas.has(i) ? '🚩' : '';
+    return `<div class="gab-row-m">
+      <span class="gab-qid-m">${escHtml(q.id)}</span>
+      <span class="gab-resp-m">${escHtml(minha)}</span>
+      <span class="gab-gab-m">${escHtml(q.gabarito)}</span>
+      <div class="gab-res-m ${res}">${res === 'c' ? '✓' : res === 'e' ? '✗' : '—'}</div>
+      <span style="font-size:13px">${duv}</span>
+      <button class="btn-m-ver" onclick="irParaQuestao(${i})">Ver</button>
+    </div>`;
+  }).join('');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function backToResult() {
+  document.getElementById('gabarito-screen').style.display = 'none';
+  document.getElementById('result-screen').style.display   = 'flex';
+}
+
+function irParaQuestao(idx) {
+  fromGabarito = true; current = idx; pendingChoice = null;
+  document.getElementById('gabarito-screen').style.display = 'none';
+  document.getElementById('quiz-screen').style.display     = 'block';
+  renderQuestion();
+}
+
+function voltarAoGabarito() {
+  fromGabarito = false;
+  document.getElementById('quiz-screen').style.display     = 'none';
+  document.getElementById('gabarito-screen').style.display = 'block';
+}
+
+function goToQuestion(idx) { current = idx; pendingChoice = null; renderQuestion(); }
+
+// ═══════════════════════════════════════════════════════════
+//  IDS FILTER
+// ═══════════════════════════════════════════════════════════
+function openIdsModal()  { document.getElementById('ids-modal').classList.add('open'); }
+function closeIdsModal() { document.getElementById('ids-modal').classList.remove('open'); }
+function applyIdsFilter() {
+  const raw = document.getElementById('ids-field').value.trim();
+  if (!raw) { _idsFilter = null; document.getElementById('ids-filter-count').style.display='none'; closeIdsModal(); return; }
+  const ids = raw.split(/[\s,;]+/).map(s=>s.trim().toUpperCase()).filter(Boolean);
+  _idsFilter = new Set(ids);
+  const cnt = document.getElementById('ids-filter-count');
+  cnt.textContent = ids.length + ' IDs'; cnt.style.display = 'inline';
+  closeIdsModal();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  CONFIG
+// ═══════════════════════════════════════════════════════════
+function openConfig() {
+  const cfg = loadConfig();
+  document.getElementById('cfg-sheet-id').value     = cfg.sheetId     || '';
+  document.getElementById('cfg-client-email').value = cfg.clientEmail || '';
+  document.getElementById('cfg-private-key').value  = cfg.privateKey  || '';
+  document.getElementById('cfg-key-status').textContent = cfg.privateKey ? '🔑 Chave salva' : '';
+  document.getElementById('config-status').textContent  = '';
+  const cfgJsonInput = document.getElementById('cfg-json-file');
+  cfgJsonInput.value = '';
+  cfgJsonInput.onchange = function(e) {
+    const f = e.target.files[0]; if (!f) return;
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      try {
+        const j = JSON.parse(ev.target.result);
+        if (j.client_email) document.getElementById('cfg-client-email').value = j.client_email;
+        if (j.private_key)  document.getElementById('cfg-private-key').value  = j.private_key;
+        if (j.private_key)  document.getElementById('cfg-key-status').textContent = '🔑 Chave carregada';
+        document.getElementById('config-status').textContent = '✅ JSON carregado! Clique em Salvar.';
+        document.getElementById('config-status').style.color = 'var(--green)';
+      } catch(err) {
+        document.getElementById('config-status').textContent = '❌ Arquivo JSON inválido.';
+        document.getElementById('config-status').style.color = 'var(--red)';
+      }
+    };
+    reader.readAsText(f);
+  };
+  document.getElementById('config-modal').classList.add('open');
+}
+function closeConfig() { document.getElementById('config-modal').classList.remove('open'); }
+function handleModalClick(e) { if (e.target === document.getElementById('config-modal')) closeConfig(); }
+function saveConfig() {
+  const sheetId     = document.getElementById('cfg-sheet-id').value.trim();
+  const clientEmail = document.getElementById('cfg-client-email').value.trim();
+  const privateKey  = document.getElementById('cfg-private-key').value.trim();
+  if (!sheetId) { document.getElementById('config-status').textContent = '❌ Informe o ID da planilha.'; document.getElementById('config-status').style.color='var(--red)'; return; }
+  localStorage.setItem('cqs-config', JSON.stringify({ sheetId, clientEmail, privateKey }));
+  document.getElementById('config-status').textContent = '✅ Configuração salva!';
+  document.getElementById('config-status').style.color = 'var(--green)';
+  setTimeout(closeConfig, 1200);
+}
+function clearConfig() {
+  localStorage.removeItem('cqs-config');
+  ['cfg-sheet-id','cfg-client-email','cfg-private-key'].forEach(id => document.getElementById(id).value='');
+  document.getElementById('cfg-key-status').textContent = '';
+  document.getElementById('config-status').textContent = '✅ Configuração limpa.';
+  document.getElementById('config-status').style.color = 'var(--text-secondary)';
+}
+function loadConfig() {
+  try { return JSON.parse(localStorage.getItem('cqs-config') || '{}'); } catch(e) { return {}; }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  JWT / SHEETS AUTH (idêntico ao desktop)
+// ═══════════════════════════════════════════════════════════
+function b64url(str) { return btoa(unescape(encodeURIComponent(str))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,''); }
+function b64urlUint8(buf) { let b=''; new Uint8Array(buf).forEach(c=>b+=String.fromCharCode(c)); return btoa(b).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,''); }
+async function getAccessToken(cfg) {
+  const iat = Math.floor(Date.now()/1000);
+  const exp = iat + 3600;
+  const header  = b64url(JSON.stringify({alg:'RS256',typ:'JWT'}));
+  const payload = b64url(JSON.stringify({iss:cfg.clientEmail,scope:'https://www.googleapis.com/auth/spreadsheets',aud:'https://oauth2.googleapis.com/token',iat,exp}));
+  const sigInput = header + '.' + payload;
+  let pem = cfg.privateKey.replace(/\\n/g,'\n');
+  const pemBody = pem.replace(/-----[^-]+-----/g,'').replace(/\s/g,'');
+  const der = Uint8Array.from(atob(pemBody), c=>c.charCodeAt(0));
+  const key = await crypto.subtle.importKey('pkcs8', der.buffer, {name:'RSASSA-PKCS1-v1_5',hash:'SHA-256'}, false, ['sign']);
+  const sig = await crypto.subtle.sign('RSASSA-PKCS1-v1_5', key, new TextEncoder().encode(sigInput));
+  const jwt = sigInput + '.' + b64urlUint8(sig);
+  const resp = await fetch('https://oauth2.googleapis.com/token', { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:`grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=${jwt}` });
+  const data = await resp.json();
+  if (!data.access_token) throw new Error('Token error: ' + JSON.stringify(data));
+  return data.access_token;
+}
+async function appendRow(sheetId, sheetName, row, token) {
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${encodeURIComponent(sheetName)}!A:A:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`;
+  await fetch(url, { method:'POST', headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'}, body:JSON.stringify({values:[row]}) });
+}
+async function getSheetTitles(sheetId, token) {
+  const resp = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sheetId}?fields=sheets.properties`, {headers:{'Authorization':'Bearer '+token}});
+  const data = await resp.json();
+  const allTitles = (data.sheets||[]).map(s=>s.properties.title);
+  return { allTitles, sheets: data.sheets||[] };
+}
+async function createSheet(sheetId, sheetName, token) {
+  await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sheetId}:batchUpdate`, { method:'POST', headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'}, body:JSON.stringify({requests:[{addSheet:{properties:{title:sheetName}}}]}) });
+}
+async function ensureSheetExists(sheetId, sheetName, token, headers) {
+  const { allTitles } = await getSheetTitles(sheetId, token);
+  if (!allTitles.includes(sheetName)) {
+    await createSheet(sheetId, sheetName, token);
+    await appendRow(sheetId, sheetName, headers, token);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  AUTO SAVE RESULT
+// ═══════════════════════════════════════════════════════════
+async function autoSaveResult(total, pct) {
+  const cfg = loadConfig();
+  const statusEl = document.getElementById('save-status');
+  if (!cfg.sheetId || !cfg.clientEmail || !cfg.privateKey) {
+    statusEl.textContent = '⚙️ Configure o Google Sheets para ativar o histórico.';
+    statusEl.className = 'm-save-status loading'; return;
+  }
+  _isSaving = true; setResultButtonsDisabled(true);
+  statusEl.textContent = '⏳ Salvando...'; statusEl.className = 'm-save-status loading';
+  try {
+    const token   = await getAccessToken(cfg);
+    const parsed  = parseFileName(uploadedFileName || cadTitle);
+    const now     = new Date();
+    const dateStr = now.toLocaleDateString('pt-BR') + ' ' + now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    const disc    = parsed.disciplina;
+    const aula    = parsed.aula;
+    const tipo    = parsed.tipo;
+    const arquivo = uploadedFileName || cadTitle;
+    const sessaoId = now.getTime().toString(36).toUpperCase();
+    await ensureSheetExists(cfg.sheetId,'Sessoes',token,['Data','Arquivo','Disciplina','Aula','Total','Acertos','Erros','%','Sessao_ID','Tipo']);
+    await appendRow(cfg.sheetId,'Sessoes',[dateStr,arquivo,disc,aula,total,score.correct,score.wrong,pct,sessaoId,tipo],token);
+    if (tipo === 'normal') {
+      await ensureSheetExists(cfg.sheetId,disc,token,['Aula','Arquivo','Data','Total','Acertos','Erros','%','Sessao_ID']);
+      await appendRow(cfg.sheetId,disc,[aula,arquivo,dateStr,total,score.correct,score.wrong,pct,sessaoId],token);
+    }
+    const respRows = [];
+    for (let i = 0; i < selectedQuestions.length; i++) {
+      const q = selectedQuestions[i]; const a = answered[i];
+      if (!a) continue;
+      respRows.push([sessaoId,dateStr,arquivo,disc,aula,q.id,a.chosen,q.gabarito,a.correct?'C':'E',duvidosas.has(i)?'S':'N']);
+    }
+    if (respRows.length) {
+      await ensureSheetExists(cfg.sheetId,'Historico_Respostas',token,['Sessao_ID','Data','Arquivo','Disciplina','Aula','ID_Questao','Minha_Resposta','Gabarito','Resultado','Duvidosa']);
+      const batchUrl = `https://sheets.googleapis.com/v4/spreadsheets/${cfg.sheetId}/values/${encodeURIComponent('Historico_Respostas')}!A:J:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`;
+      await fetch(batchUrl,{method:'POST',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({values:respRows})});
+    }
+    statusEl.textContent = '✅ Salvo! ' + respRows.length + ' resposta(s).'; statusEl.className = 'm-save-status ok';
+  } catch(e) {
+    statusEl.textContent = '❌ Erro: ' + e.message; statusEl.className = 'm-save-status err';
+  } finally { _isSaving = false; setResultButtonsDisabled(false); }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  HISTORY
+// ═══════════════════════════════════════════════════════════
+async function showHistory() {
+  historyFrom = document.getElementById('result-screen').style.display !== 'none' ? 'result' : 'setup';
+  ['result-screen','setup-screen','quiz-screen'].forEach(id => document.getElementById(id).style.display='none');
+  document.getElementById('history-screen').style.display = 'block';
+  document.querySelectorAll('.hist-tab-m').forEach((t,i) => t.classList.toggle('active', i===0));
+  currentHistoryTab = 'geral';
+  document.getElementById('history-content').innerHTML = '<div class="m-empty"><span>⏳</span><p>Carregando...</p></div>';
+  const cfg = loadConfig();
+  if (!cfg.sheetId || !cfg.clientEmail || !cfg.privateKey) {
+    document.getElementById('history-content').innerHTML = '<div class="m-empty"><span>⚙️</span><p>Configure o Google Sheets para ver o histórico.</p></div>'; return;
+  }
+  try {
+    const token = await getAccessToken(cfg);
+    const url   = `https://sheets.googleapis.com/v4/spreadsheets/${cfg.sheetId}/values/${encodeURIComponent('Sessoes')}!A:J`;
+    const resp  = await fetch(url,{headers:{'Authorization':'Bearer '+token}});
+    const data  = await resp.json();
+    const rows  = (data.values||[]).slice(1);
+    historyData = rows.map(r=>({data:r[0]||'',arquivo:r[1]||'',disciplina:r[2]||'',aula:r[3]||'',total:parseInt(r[4])||0,acertos:parseInt(r[5])||0,erros:parseInt(r[6])||0,pct:parseInt(r[7])||0,sessaoId:r[8]||'',tipo:r[9]||'normal'}));
+    renderHistoryTab('geral');
+  } catch(e) {
+    document.getElementById('history-content').innerHTML = '<div class="m-empty"><span>❌</span><p>' + escHtml(e.message) + '</p></div>';
+  }
+}
+
+function closeHistory() {
+  document.getElementById('history-screen').style.display = 'none';
+  if (historyFrom === 'result') document.getElementById('result-screen').style.display = 'flex';
+  else document.getElementById('setup-screen').style.display = 'flex';
+}
+
+function switchTab(tab) {
+  currentHistoryTab = tab;
+  document.querySelectorAll('.hist-tab-m').forEach(t => {
+    t.classList.toggle('active', t.getAttribute('onclick').includes("'"+tab+"'"));
+  });
+  renderHistoryTab(tab);
+}
+
+function pctPillM(pct) {
+  const cls = pct >= 85 ? 'excellent' : pct >= 70 ? 'good' : pct >= 50 ? 'review' : 'poor';
+  return `<span class="pct-pill-m ${cls}">${pct}%</span>`;
+}
+function tipoBadgeM(tipo) {
+  if (tipo === 'revisao')  return '<span class="tipo-badge-m revisao">🔁 REVISÃO</span>';
+  if (tipo === 'simulado') return '<span class="tipo-badge-m simulado">🎯 SIMULADO</span>';
+  return '';
+}
+function gabBtn(r) {
+  const key = 'gab_' + (++_gabBtnSeq);
+  _gabBtnRegistry[key] = r;
+  return `<button class="btn-m-ver" onclick="openHistGabByKey('${key}')">📋</button>`;
+}
+function openHistGabByKey(key) { const r = _gabBtnRegistry[key]; if (r) openHistGab(r.sessaoId||'',r.arquivo,r.data); }
+
+function renderHistoryTab(tab) {
+  const el = document.getElementById('history-content');
+  if (!historyData.length) { el.innerHTML = '<div class="m-empty"><span>📭</span><p>Nenhuma sessão registrada ainda.</p></div>'; return; }
+  const normais   = historyData.filter(r => r.tipo === 'normal' || !r.tipo);
+  const revisoes  = historyData.filter(r => r.tipo === 'revisao');
+  const simulados = historyData.filter(r => r.tipo === 'simulado');
+
+  if (tab === 'geral') {
+    const total = normais.reduce((a,r)=>a+r.total,0);
+    const acer  = normais.reduce((a,r)=>a+r.acertos,0);
+    const erros = normais.reduce((a,r)=>a+r.erros,0);
+    const pct   = total ? Math.round(acer/total*100) : 0;
+    const discs = [...new Set(normais.map(r=>r.disciplina))].length;
+    let html = `<div class="hstat-grid-m">
+      <div class="hstat-card-m"><div class="hstat-n-m">${normais.length}</div><div class="hstat-l-m">Cadernos</div></div>
+      <div class="hstat-card-m"><div class="hstat-n-m">${total}</div><div class="hstat-l-m">Questões</div></div>
+      <div class="hstat-card-m"><div class="hstat-n-m" style="color:var(--green)">${acer}</div><div class="hstat-l-m">Acertos</div></div>
+      <div class="hstat-card-m"><div class="hstat-n-m" style="color:var(--red)">${erros}</div><div class="hstat-l-m">Erros</div></div>
+    </div>
+    <div class="hstat-grid-m">
+      <div class="hstat-card-m"><div class="hstat-n-m">${pctPillM(pct)}</div><div class="hstat-l-m">Aproveitamento</div></div>
+      <div class="hstat-card-m"><div class="hstat-n-m">${discs}</div><div class="hstat-l-m">Disciplinas</div></div>
+    </div>`;
+    if (revisoes.length || simulados.length) {
+      html += '<div style="margin-top:12px;padding:12px;background:var(--bg-card);border-radius:14px;box-shadow:var(--shadow-card)">';
+      if (revisoes.length) { const rv=revisoes.reduce((a,r)=>a+r.total,0),ra=revisoes.reduce((a,r)=>a+r.acertos,0),rp=rv?Math.round(ra/rv*100):0; html+=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="font-size:13px;font-weight:600">🔁 ${revisoes.length} revisão(ões)</span>${pctPillM(rp)}</div>`; }
+      if (simulados.length) { const sv=simulados.reduce((a,r)=>a+r.total,0),sa=simulados.reduce((a,r)=>a+r.acertos,0),sp=sv?Math.round(sa/sv*100):0; html+=`<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px;font-weight:600">🎯 ${simulados.length} simulado(s)</span>${pctPillM(sp)}</div>`; }
+      html += '<div style="font-size:11px;color:var(--text-secondary);margin-top:8px">Não contabilizados nas médias gerais</div></div>';
+    }
+    el.innerHTML = html;
+
+  } else if (tab === 'disciplina') {
+    const map = {};
+    normais.forEach(r => {
+      if (!map[r.disciplina]) map[r.disciplina] = {cadernos:0,total:0,acertos:0};
+      map[r.disciplina].cadernos++; map[r.disciplina].total+=r.total; map[r.disciplina].acertos+=r.acertos;
+    });
+    el.innerHTML = Object.entries(map).sort((a,b)=>a[0].localeCompare(b[0])).map(([disc,d]) => {
+      const p = d.total ? Math.round(d.acertos/d.total*100) : 0;
+      return `<div class="htrow-m">
+        <div class="htrow-m-main">${escHtml(disc)}</div>
+        <div class="htrow-m-stats">
+          <span class="htrow-m-stat"><b>${d.cadernos}</b> cadernos</span>
+          <span class="htrow-m-stat"><b>${d.total}</b> questões</span>
+          <span class="htrow-m-stat"><b style="color:var(--green)">${d.acertos}</b> acertos</span>
+          ${pctPillM(p)}
+        </div>
+      </div>`;
+    }).join('');
+
+  } else if (tab === 'aula') {
+    const rows = [...normais].sort((a,b)=>a.disciplina.localeCompare(b.disciplina)||a.aula.localeCompare(b.aula));
+    const extras = [...revisoes,...simulados].sort((a,b)=>b.data.localeCompare(a.data));
+    let html = rows.map(r => `<div class="htrow-m">
+      <div class="htrow-m-main">${escHtml(r.disciplina)} — AULA ${escHtml(r.aula)}</div>
+      <div class="htrow-m-sub" style="font-size:11px;margin-bottom:4px">${escHtml(r.arquivo)}</div>
+      <div class="htrow-m-stats">
+        <span class="htrow-m-stat"><b>${r.total}</b> questões</span>
+        <span class="htrow-m-stat"><b style="color:var(--green)">${r.acertos}</b> acertos</span>
+        ${pctPillM(r.pct)} ${gabBtn(r)}
+      </div>
+    </div>`).join('');
+    if (extras.length) {
+      html += '<div style="font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.08em;margin:12px 0 8px">🔁🎯 Revisões e Simulados</div>';
+      html += extras.map(r => `<div class="htrow-m" style="${r.tipo==='revisao'?'background:rgba(251,191,36,0.06)':'background:rgba(99,102,241,0.06)'}">
+        <div class="htrow-m-main">${escHtml(r.arquivo)} ${tipoBadgeM(r.tipo)}</div>
+        <div class="htrow-m-stats">
+          <span class="htrow-m-stat"><b>${r.total}</b> questões</span>
+          ${pctPillM(r.pct)} ${gabBtn(r)}
+        </div>
+      </div>`).join('');
+    }
+    el.innerHTML = html;
+
+  } else if (tab === 'sessoes') {
+    el.innerHTML = [...historyData].reverse().map(r => `<div class="htrow-m" style="${r.tipo==='revisao'?'background:rgba(251,191,36,0.06)':r.tipo==='simulado'?'background:rgba(99,102,241,0.06)':''}">
+      <div class="htrow-m-main">${escHtml(r.arquivo)} ${tipoBadgeM(r.tipo)}</div>
+      <div class="htrow-m-sub">${escHtml(r.data)}</div>
+      <div class="htrow-m-stats">
+        <span class="htrow-m-stat"><b>${r.total}</b> questões</span>
+        <span class="htrow-m-stat"><b style="color:var(--green)">${r.acertos}</b> acertos</span>
+        ${pctPillM(r.pct)} ${gabBtn(r)}
+      </div>
+    </div>`).join('');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  HIST-GAB
+// ═══════════════════════════════════════════════════════════
+async function openHistGab(sessaoId, arquivo, data) {
+  document.getElementById('hist-gab-modal').classList.add('open');
+  document.getElementById('hist-gab-title').textContent = arquivo || 'Gabarito';
+  document.getElementById('hist-gab-sub').textContent   = data || '—';
+  document.getElementById('hist-gab-body').innerHTML    = '<div class="m-empty"><span>⏳</span><p>Carregando...</p></div>';
+  const cfg = loadConfig();
+  if (!cfg.sheetId || !cfg.clientEmail || !cfg.privateKey) {
+    document.getElementById('hist-gab-body').innerHTML = '<div class="m-empty"><span>⚙️</span><p>Configure o Google Sheets.</p></div>'; return;
+  }
+  try {
+    const token = await getAccessToken(cfg);
+    const url   = `https://sheets.googleapis.com/v4/spreadsheets/${cfg.sheetId}/values/${encodeURIComponent('Historico_Respostas')}!A:J`;
+    const resp  = await fetch(url,{headers:{'Authorization':'Bearer '+token}});
+    const d     = await resp.json();
+    let rows = (d.values||[]).slice(1);
+    if (sessaoId) rows = rows.filter(r => r[0] === sessaoId);
+    else { const dp = (data||'').split(' ')[0]; rows = rows.filter(r => (r[2]||'') === arquivo && (r[1]||'').startsWith(dp)); }
+    if (!rows.length) { document.getElementById('hist-gab-body').innerHTML = '<div class="m-empty"><span>📭</span><p>Nenhum registro encontrado.</p></div>'; return; }
+    document.getElementById('hist-gab-body').innerHTML = rows.map(r => {
+      const res = (r[8]||'') === 'C' ? 'c' : 'e';
+      const duv = (r[9]||'') === 'S' ? '🚩' : '';
+      return `<div class="m-histgab-row">
+        <span class="gab-qid-m">${escHtml(r[5]||'')}</span>
+        <span class="gab-resp-m">${escHtml(r[6]||'')}</span>
+        <span class="gab-gab-m">${escHtml(r[7]||'')}</span>
+        <div class="gab-res-m ${res}">${res==='c'?'✓':'✗'}</div>
+        <span style="font-size:13px">${duv}</span>
+        <button class="btn-m-ver" onclick="verQuestaoNoBanco('${escHtml(r[5]||'')}')">Ver</button>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    document.getElementById('hist-gab-body').innerHTML = '<div class="m-empty"><span>❌</span><p>' + escHtml(e.message) + '</p></div>';
+  }
+}
+function closeHistGab() { document.getElementById('hist-gab-modal').classList.remove('open'); }
+
+// ═══════════════════════════════════════════════════════════
+//  BANCO — AUTO SAVE
+// ═══════════════════════════════════════════════════════════
+function _makeIdComposto(disc, aula, idOriginal) {
+  const d = (disc||'DISC').replace(/\s+/g,'_').toUpperCase();
+  const a = (aula||'00').replace(/\s+/g,'_').toUpperCase();
+  const i = String(idOriginal||'').replace(/\s+/g,'_').toUpperCase();
+  return `${d}_${a}_${i}`;
+}
+
+async function _autoSalvarNoBanco(idx, novaOrigem) {
+  const q = selectedQuestions[idx];
+  const parsed  = parseFileName(uploadedFileName || cadTitle);
+  const disc    = parsed.disciplina; const aula = parsed.aula;
+  const arquivo = uploadedFileName || cadTitle;
+  const idComposto = _makeIdComposto(disc, aula, q.id);
+  const origemAtual = bancoEmSessao[idComposto];
+  let origemFinal;
+  if (!origemAtual) origemFinal = novaOrigem;
+  else if (origemAtual === novaOrigem) origemFinal = novaOrigem;
+  else origemFinal = 'erro+duvida';
+  bancoEmSessao[idComposto] = origemFinal;
+  const cfg = loadConfig();
+  if (!cfg.sheetId || !cfg.clientEmail || !cfg.privateKey) return;
+  try {
+    const token = await getAccessToken(cfg);
+    const hoje  = new Date().toLocaleDateString('pt-BR');
+    const alts  = q.alternativas ? q.alternativas.map(a=>a.letra+') '+a.texto).join(' | ') : '';
+    const headers = ['ID','Disciplina','Tipo','Enunciado','Alternativas','Gabarito','Comentário','Banca','Cargo','Ano','Tema','Data_Adição','Arquivo','Origem','Dica'];
+    await ensureSheetExists(cfg.sheetId,'Banco_Simulado',token,headers);
+    const checkUrl = `https://sheets.googleapis.com/v4/spreadsheets/${cfg.sheetId}/values/${encodeURIComponent('Banco_Simulado')}!A:A`;
+    const checkResp = await fetch(checkUrl,{headers:{'Authorization':'Bearer '+token}});
+    const checkData = await checkResp.json();
+    const allIds = (checkData.values||[]).slice(1).map(r=>r[0]);
+    const rowIdx = allIds.indexOf(idComposto);
+    if (rowIdx === -1) {
+      const batchUrl = `https://sheets.googleapis.com/v4/spreadsheets/${cfg.sheetId}/values/${encodeURIComponent('Banco_Simulado')}!A:O:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`;
+      await fetch(batchUrl,{method:'POST',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({values:[[idComposto,disc,q.tipo,q.enunciado,alts,q.gabarito,q.comentario||'',q.meta['banca']||'',q.meta['cargo']||'',q.meta['ano']||'',q.meta['tema']||'',hoje,arquivo,origemFinal,q.dica||'']]})});
+    } else {
+      await _atualizarOrigemNoBanco(idComposto, origemFinal, token, rowIdx+2);
+    }
+  } catch(e) { console.warn('Auto-save banco:', e.message); }
+}
+
+async function _atualizarOrigemNoBanco(idComposto, origemFinal, token, rowNum) {
+  const cfg = loadConfig();
+  if (!cfg.sheetId || !cfg.clientEmail || !cfg.privateKey) return;
+  try {
+    if (!token) token = await getAccessToken(cfg);
+    if (!rowNum) {
+      const checkUrl = `https://sheets.googleapis.com/v4/spreadsheets/${cfg.sheetId}/values/${encodeURIComponent('Banco_Simulado')}!A:A`;
+      const checkData = await (await fetch(checkUrl,{headers:{'Authorization':'Bearer '+token}})).json();
+      const idx = (checkData.values||[]).slice(1).map(r=>r[0]).indexOf(idComposto);
+      if (idx === -1) return;
+      rowNum = idx + 2;
+    }
+    const updateUrl = `https://sheets.googleapis.com/v4/spreadsheets/${cfg.sheetId}/values/${encodeURIComponent('Banco_Simulado')}!N${rowNum}?valueInputOption=USER_ENTERED`;
+    await fetch(updateUrl,{method:'PUT',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({values:[[origemFinal]]})});
+  } catch(e) { console.warn('Atualizar origem:', e.message); }
+}
+
+async function _excluirDoBancoPorId(idComposto) {
+  const cfg = loadConfig();
+  if (!cfg.sheetId || !cfg.clientEmail || !cfg.privateKey) return;
+  try {
+    const token = await getAccessToken(cfg);
+    const checkData = await (await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${cfg.sheetId}/values/${encodeURIComponent('Banco_Simulado')}!A:A`,{headers:{'Authorization':'Bearer '+token}})).json();
+    const rowIdx = (checkData.values||[]).slice(1).map(r=>r[0]).indexOf(idComposto);
+    if (rowIdx === -1) return;
+    const meta = await (await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${cfg.sheetId}?fields=sheets.properties`,{headers:{'Authorization':'Bearer '+token}})).json();
+    const sheet = (meta.sheets||[]).find(s=>s.properties.title==='Banco_Simulado');
+    if (!sheet) return;
+    await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${cfg.sheetId}:batchUpdate`,{method:'POST',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({requests:[{deleteDimension:{range:{sheetId:sheet.properties.sheetId,dimension:'ROWS',startIndex:rowIdx+1,endIndex:rowIdx+2}}}]})});
+  } catch(e) { console.warn('Excluir banco:', e.message); }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  BANCO MODAL
+// ═══════════════════════════════════════════════════════════
+function openBancoModal()  { document.getElementById('banco-modal').classList.add('open'); loadBancoDiscs(); }
+function closeBancoModal() { document.getElementById('banco-modal').classList.remove('open'); }
+function switchBancoTab(tab) {
+  document.querySelectorAll('.m-banco-tab').forEach((t,i) => t.classList.toggle('active', ['gerar','revisar','avulsa'][i] === tab));
+  document.querySelectorAll('.m-banco-tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('banco-panel-'+tab).classList.add('active');
+  if (tab === 'revisar') renderRevisarCadernos();
+}
+
+async function loadBancoDiscs() {
+  const grid = document.getElementById('sim-disc-grid');
+  grid.innerHTML = '<span style="font-size:13px;color:var(--text-secondary);font-style:italic">⏳ Carregando...</span>';
+  const cfg = loadConfig();
+  if (!cfg.sheetId || !cfg.clientEmail || !cfg.privateKey) { grid.innerHTML = '<span style="font-size:13px;color:var(--text-secondary)">⚙️ Configure o Google Sheets.</span>'; return; }
+  try {
+    const token = await getAccessToken(cfg);
+    const url   = `https://sheets.googleapis.com/v4/spreadsheets/${cfg.sheetId}/values/${encodeURIComponent('Banco_Simulado')}!A:O`;
+    const data  = await (await fetch(url,{headers:{'Authorization':'Bearer '+token}})).json();
+    if (!data.values || data.values.length < 2) { grid.innerHTML = '<span style="font-size:13px;color:var(--text-secondary)">📭 Banco vazio. Erre ou marque questões na dúvida para populá-lo.</span>'; updateSimInfoBar(); return; }
+    _bancoRows = data.values.slice(1);
+    const discCount = {};
+    _bancoRows.forEach(r => { const d=(r[1]||'SEM_DISC').trim().toUpperCase(); discCount[d]=(discCount[d]||0)+1; });
+    _bancoDiscsSelected = new Set(Object.keys(discCount));
+    grid.innerHTML = Object.entries(discCount).map(([d,cnt]) =>
+      `<div class="m-disc-chip selected" data-disc="${d}" onclick="toggleDiscChip(this)">${d} <span class="m-chip-count">${cnt}</span></div>`
+    ).join('');
+    document.getElementById('banco-modal-sub').textContent = `${_bancoRows.length} questão(ões) no banco`;
+    updateSimInfoBar();
+  } catch(e) { grid.innerHTML = '<span style="font-size:13px;color:var(--text-secondary)">📭 Banco vazio ou não criado.</span>'; }
+}
+
+function toggleDiscChip(el) {
+  const d = el.dataset.disc;
+  if (_bancoDiscsSelected.has(d)) { _bancoDiscsSelected.delete(d); el.classList.remove('selected'); }
+  else { _bancoDiscsSelected.add(d); el.classList.add('selected'); }
+  updateSimInfoBar();
+}
+function selectAllDiscs(sel) {
+  document.querySelectorAll('.m-disc-chip').forEach(el => {
+    const d = el.dataset.disc;
+    if (sel) { _bancoDiscsSelected.add(d); el.classList.add('selected'); }
+    else { _bancoDiscsSelected.delete(d); el.classList.remove('selected'); }
+  });
+  updateSimInfoBar();
+}
+function toggleRandQty() {
+  const chk = document.getElementById('sim-rand-check');
+  document.getElementById('sim-rand-qty').disabled = !chk.checked;
+}
+function updateSimInfoBar() {
+  const filtered = _bancoRows.filter(r => _bancoDiscsSelected.has((r[1]||'SEM_DISC').trim().toUpperCase()));
+  document.getElementById('sim-info-bar').textContent = `${filtered.length} questão(ões) selecionada(s)`;
+}
+
+function gerarSimuladoTxt() {
+  const statusEl = document.getElementById('sim-status');
+  if (!_bancoRows.length) { statusEl.textContent = '❌ Banco vazio.'; return; }
+  let filtered = _bancoRows.filter(r => _bancoDiscsSelected.has((r[1]||'SEM_DISC').trim().toUpperCase()));
+  if (!filtered.length) { statusEl.textContent = '❌ Nenhuma questão selecionada.'; return; }
+  const randCheck = document.getElementById('sim-rand-check');
+  const randQty   = parseInt(document.getElementById('sim-rand-qty').value) || 0;
+  if (randCheck.checked && randQty > 0) {
+    for (let i = filtered.length-1; i > 0; i--) { const j=Math.floor(Math.random()*(i+1)); [filtered[i],filtered[j]]=[filtered[j],filtered[i]]; }
+    filtered = filtered.slice(0, randQty);
+  }
+  const blocks = filtered.map((r,idx) => {
+    const id    = (r[0]||'').includes('_') ? r[0].split('_').pop() : (r[0]||('SIM_'+String(idx+1).padStart(3,'0')));
+    const tipo  = (r[2]||'CE').toUpperCase();
+    const banca = r[7]||'NÃO INFORMADO'; const cargo=r[8]||'NÃO INFORMADO'; const ano=r[9]||'NÃO INFORMADO'; const tema=r[10]||'';
+    const altsRaw = r[4]||'';
+    let lines = [`QUESTÃO ${id}`,`Banca: ${banca} | Cargo: ${cargo} | Ano: ${ano}${tema?' | Tema: '+tema:''}`,`Tipo: ${tipo}`,`Enunciado: ${r[3]||''}`];
+    if (tipo==='MULTIPLA'&&altsRaw) altsRaw.split(' | ').forEach(a=>{if(a.trim())lines.push(a.trim());});
+    lines.push(`Gabarito: ${r[5]||''}`);
+    if (r[6]) lines.push(`Comentário: ${r[6]}`);
+    if (r[14]) lines.push(`Dica: ${r[14]}`);
+    return lines.join('\n');
+  });
+  const txt  = blocks.join('\n---\n') + '\n---\n';
+  const blob = new Blob([txt],{type:'text/plain;charset=utf-8'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href=url; a.download=`[SIMULADO] CQS - ${new Date().toLocaleDateString('pt-BR').replace(/\//g,'-')}.txt`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+  statusEl.textContent = `✅ ${filtered.length} questão(ões) exportadas!`;
+}
+
+function renderRevisarCadernos() {
+  const listEl = document.getElementById('revisar-caderno-list');
+  if (!_bancoRows.length) { listEl.innerHTML = '<div class="m-empty"><span>📭</span><p>Banco vazio.</p></div>'; return; }
+  const cadernos = {};
+  _bancoRows.forEach(r => {
+    const arq = (r[12]||r[1]||'Sem caderno').trim();
+    if (!cadernos[arq]) cadernos[arq] = {total:0,erros:0,duvidas:0};
+    cadernos[arq].total++;
+    const origem = (r[13]||'').toLowerCase();
+    if (origem.includes('erro'))   cadernos[arq].erros++;
+    if (origem.includes('duvida')) cadernos[arq].duvidas++;
+  });
+  listEl.innerHTML = Object.entries(cadernos).map(([arq,info]) => {
+    const key = 'rev_' + Math.random().toString(36).slice(2);
+    _gabBtnRegistry[key] = arq;
+    return `<div style="background:var(--bg-btn-mc);border:1.5px solid var(--border-input);border-radius:14px;padding:14px;margin-bottom:10px">
+      <div style="font-size:14px;font-weight:700;color:var(--text-primary);font-family:var(--serif);margin-bottom:4px">${escHtml(arq)}</div>
+      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:12px">${info.total} questão(ões) · ${info.erros} erro(s) · ${info.duvidas} dúvida(s)</div>
+      <button onclick="gerarRevisaoCaderno('${key}')" style="width:100%;padding:12px;background:var(--blue);color:#fff;border:none;border-radius:10px;font-family:var(--serif);font-size:14px;font-weight:700;cursor:pointer">⬇ Baixar .txt de Revisão</button>
+    </div>`;
+  }).join('');
+}
+
+const _revRegistry = {};
+function gerarRevisaoCaderno(key) {
+  const arq = _gabBtnRegistry[key];
+  const statusEl = document.getElementById('revisar-status');
+  const rows = _bancoRows.filter(r=>(r[12]||r[1]||'').trim()===arq);
+  if (!rows.length) { statusEl.textContent='❌ Nenhuma questão encontrada.'; return; }
+  const blocks = rows.map((r,idx) => {
+    const id    = (r[0]||'').includes('_') ? r[0].split('_').pop() : (r[0]||('SIM_'+String(idx+1).padStart(3,'0')));
+    const tipo  = (r[2]||'CE').toUpperCase();
+    const banca = r[7]||'NÃO INFORMADO'; const cargo=r[8]||'NÃO INFORMADO'; const ano=r[9]||'NÃO INFORMADO'; const tema=r[10]||'';
+    const altsRaw = r[4]||'';
+    let lines = [`QUESTÃO ${id}`,`Banca: ${banca} | Cargo: ${cargo} | Ano: ${ano}${tema?' | Tema: '+tema:''}`,`Tipo: ${tipo}`,`Enunciado: ${r[3]||''}`];
+    if (tipo==='MULTIPLA'&&altsRaw) altsRaw.split(' | ').forEach(a=>{if(a.trim())lines.push(a.trim());});
+    lines.push(`Gabarito: ${r[5]||''}`);
+    if (r[6]) lines.push(`Comentário: ${r[6]}`);
+    if (r[14]) lines.push(`Dica: ${r[14]}`);
+    return lines.join('\n');
+  });
+  const txt  = blocks.join('\n---\n') + '\n---\n';
+  const blob = new Blob([txt],{type:'text/plain;charset=utf-8'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href=url; a.download=`[REVISÃO] ${arq}.txt`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+  statusEl.textContent = `✅ ${rows.length} questão(ões) exportadas!`;
+}
+
+async function salvarQuestaoAvulsa() {
+  const disc = document.getElementById('avulsa-disc').value.trim().toUpperCase();
+  const txtRaw = document.getElementById('avulsa-txt').value.trim();
+  const statusEl = document.getElementById('avulsa-status');
+  statusEl.className='m-avulsa-status'; statusEl.textContent='';
+  if (!disc) { statusEl.textContent='❌ Informe a disciplina.'; statusEl.className='m-avulsa-status err'; return; }
+  if (!txtRaw) { statusEl.textContent='❌ Cole a questão no formato CQS.'; statusEl.className='m-avulsa-status err'; return; }
+  const parsed = parseQuestions(txtRaw);
+  if (!parsed.length) { statusEl.textContent='❌ Formato inválido.'; statusEl.className='m-avulsa-status err'; return; }
+  const cfg = loadConfig();
+  if (!cfg.sheetId || !cfg.clientEmail || !cfg.privateKey) { statusEl.textContent='❌ Configure o Google Sheets.'; statusEl.className='m-avulsa-status err'; return; }
+  statusEl.textContent='⏳ Salvando...'; statusEl.className='m-avulsa-status loading';
+  try {
+    const token = await getAccessToken(cfg);
+    const hoje  = new Date().toLocaleDateString('pt-BR');
+    await ensureSheetExists(cfg.sheetId,'Banco_Simulado',token,['ID','Disciplina','Tipo','Enunciado','Alternativas','Gabarito','Comentário','Banca','Cargo','Ano','Tema','Data_Adição','Arquivo','Origem','Dica']);
+    const rows = parsed.map(q => {
+      const alts = q.alternativas?q.alternativas.map(a=>a.letra+') '+a.texto).join(' | '):'';
+      const idComposto = _makeIdComposto(disc,'AVULSA',q.id);
+      return [idComposto,disc,q.tipo,q.enunciado,alts,q.gabarito,q.comentario||'',q.meta['banca']||'',q.meta['cargo']||'',q.meta['ano']||'',q.meta['tema']||'',hoje,'avulsa','avulsa',q.dica||''];
+    });
+    const batchUrl = `https://sheets.googleapis.com/v4/spreadsheets/${cfg.sheetId}/values/${encodeURIComponent('Banco_Simulado')}!A:O:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`;
+    await fetch(batchUrl,{method:'POST',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({values:rows})});
+    statusEl.textContent=`✅ ${parsed.length} questão(ões) salva(s)!`; statusEl.className='m-avulsa-status ok';
+    document.getElementById('avulsa-disc').value=''; document.getElementById('avulsa-txt').value='';
+    await loadBancoDiscs();
+  } catch(e) { statusEl.textContent='❌ Erro: '+e.message; statusEl.className='m-avulsa-status err'; }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  QVIEW
+// ═══════════════════════════════════════════════════════════
+function closeQview() { document.getElementById('qview-modal').classList.remove('open'); _qviewCurrentId=null; }
+
+async function verQuestaoNoBanco(idQ) {
+  _qviewCurrentId = idQ;
+  document.getElementById('qview-modal').classList.add('open');
+  document.getElementById('qview-id').textContent    = idQ;
+  document.getElementById('qview-meta').textContent  = '—';
+  document.getElementById('qview-tag-row').innerHTML = '';
+  document.getElementById('qview-body').innerHTML    = '<div class="m-empty"><span>⏳</span><p>Carregando...</p></div>';
+  document.getElementById('qview-footer').style.display = 'none';
+  const cfg = loadConfig();
+  if (!cfg.sheetId || !cfg.clientEmail || !cfg.privateKey) { document.getElementById('qview-body').innerHTML='<div class="m-empty"><span>⚙️</span><p>Configure o Google Sheets.</p></div>'; return; }
+  try {
+    const token = await getAccessToken(cfg);
+    const url   = `https://sheets.googleapis.com/v4/spreadsheets/${cfg.sheetId}/values/${encodeURIComponent('Banco_Simulado')}!A:O`;
+    const data  = await (await fetch(url,{headers:{'Authorization':'Bearer '+token}})).json();
+    const rows  = (data.values||[]).slice(1);
+    const row   = rows.find(r=>r[0]===idQ);
+    if (!row) { document.getElementById('qview-body').innerHTML=`<div class="m-empty"><span>🔍</span><p>Questão <strong>${escHtml(idQ)}</strong> não encontrada.</p></div>`; return; }
+    const tipo=((row[2]||'').trim().toUpperCase()), enunciado=(row[3]||''), altsRaw=(row[4]||'');
+    const gabarito=((row[5]||'').trim().toUpperCase()), comentario=(row[6]||''), banca=(row[7]||''), cargo=(row[8]||''), ano=(row[9]||''), tema=(row[10]||''), dica=(row[14]||'');
+    document.getElementById('qview-meta').textContent = [banca,cargo,ano].filter(Boolean).join(' / ')||'—';
+    document.getElementById('qview-tag-row').innerHTML = tema?`<span style="font-size:11px;background:rgba(255,255,255,0.15);color:var(--text-header);padding:2px 8px;border-radius:6px">🏷 ${escHtml(tema)}</span>`:'';
+    let bodyHtml = `<div class="m-qview-section-label">Enunciado</div><div class="m-qview-enunciado">${escHtml(enunciado).replace(/\n/g,'<br>')}</div>`;
+    if (tipo==='MULTIPLA'&&altsRaw) {
+      const alts=altsRaw.split(/\s*\|\s*|\n/).map(s=>s.trim()).filter(Boolean);
+      if (alts.length) {
+        bodyHtml += '<div class="m-qview-opts">';
+        alts.forEach(alt => { const m=alt.match(/^([A-E])\)\s*(.*)/s); if(!m)return; const isGab=m[1]===gabarito; bodyHtml+=`<div class="m-qview-opt ${isGab?'gabarito':''}"><b>${m[1]})</b> ${escHtml(m[2].trim())}${isGab?' ✅':''}</div>`; });
+        bodyHtml += '</div>';
+      }
+    } else if (tipo==='CE') {
+      const isC=gabarito==='CERTO'||gabarito==='C';
+      bodyHtml+=`<div class="m-qview-ce-badge" style="background:${isC?'var(--green-light)':'var(--red-light)'};color:${isC?'var(--green)':'var(--red)'}">${isC?'✅ CERTO':'❌ ERRADO'}</div>`;
+    }
+    if (comentario) bodyHtml+=`<div class="m-qview-section-label">💬 Comentário</div><div class="m-qview-comentario">${escHtml(comentario).replace(/\n/g,'<br>')}</div>`;
+    if (dica)       bodyHtml+=`<div class="m-qview-section-label">⚠ Dica &amp; Atenção</div><div class="m-qview-dica">${escHtml(dica).replace(/\n/g,'<br>')}</div>`;
+    document.getElementById('qview-body').innerHTML = bodyHtml;
+    document.getElementById('qview-footer').style.display = 'block';
+  } catch(e) { document.getElementById('qview-body').innerHTML=`<div class="m-empty"><span>❌</span><p>${escHtml(e.message)}</p></div>`; }
+}
+
+async function excluirQuestaoNoBanco() {
+  if (!_qviewCurrentId) return;
+  if (!confirm(`Excluir "${_qviewCurrentId}" do banco?`)) return;
+  const btn = document.getElementById('qview-delete-btn');
+  btn.textContent='⏳ Excluindo...'; btn.disabled=true;
+  try {
+    await _excluirDoBancoPorId(_qviewCurrentId);
+    _bancoRows = _bancoRows.filter(r=>r[0]!==_qviewCurrentId);
+    closeQview();
+    if (document.getElementById('banco-modal').classList.contains('open')) await loadBancoDiscs();
+  } catch(e) { btn.textContent='🗑 Excluir do Banco'; btn.disabled=false; alert('Erro: '+e.message); }
+}
+
+// Close modals on outside tap
+document.getElementById('config-modal').addEventListener('click', function(e) { if(e.target===this) closeConfig(); });
+document.getElementById('ids-modal').addEventListener('click', function(e) { if(e.target===this) closeIdsModal(); });
+document.getElementById('banco-modal').addEventListener('click', function(e) { if(e.target===this) closeBancoModal(); });
+</script>
+</body>
+</html>
