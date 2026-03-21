@@ -1314,10 +1314,8 @@ body {
       </div>
     </div>
     <div class="m-save-status" id="save-status"></div>
-    <div class="m-save-status" id="save-banco-status" style="font-size:12px;margin-top:4px"></div>
     <div class="m-result-btns">
       <button class="btn-m-result" id="btn-res-gab"  style="background:var(--gold)"       onclick="showGabarito()">📋 Ver Gabarito</button>
-      <button class="btn-m-result" id="btn-res-banco" style="background:var(--blue)"        onclick="salvarBancoAoFinal()">💾 Salvar no Banco</button>
       <button class="btn-m-result" id="btn-res-hist" style="background:var(--bg-header)"  onclick="showHistory()">📊 Histórico</button>
       <button class="btn-m-result" id="btn-res-home" style="background:#37474F"           onclick="goHome()">🏠 Início</button>
     </div>
@@ -1721,12 +1719,8 @@ function confirmAnswer() {
   answered[current] = { chosen: pendingChoice, correct, _commentOpen: false };
   if (correct) score.correct++; else score.wrong++;
   pendingChoice = null;
-  if (!correct) {
-    const parsed2 = parseFileName(uploadedFileName || cadTitle);
-    const idC = _makeIdComposto(parsed2.disciplina, parsed2.aula, q.id);
-    const origemAtual = bancoEmSessao[idC];
-    bancoEmSessao[idC] = (!origemAtual || origemAtual === 'erro') ? 'erro' : 'erro+duvida';
-    if (loadConfig().autosave !== false) _autoSalvarNoBanco(current, bancoEmSessao[idC]);
+  if (!correct && loadConfig().autosave !== false) {
+    _autoSalvarNoBanco(current, 'erro');
   }
   renderQuestion();
 }
@@ -1738,19 +1732,19 @@ function toggleDuvidosa() {
   const autosaveOn2 = loadConfig().autosave !== false;
   if (duvidosas.has(current)) {
     duvidosas.delete(current);
-    const origem = bancoEmSessao[idComposto];
-    if (origem === 'duvida') {
-      delete bancoEmSessao[idComposto];
-      if (autosaveOn2) _excluirDoBancoPorId(idComposto).catch(e => console.warn(e.message));
-    } else if (origem === 'erro+duvida') {
-      bancoEmSessao[idComposto] = 'erro';
-      if (autosaveOn2) _atualizarOrigemNoBanco(idComposto, 'erro').catch(e => console.warn(e.message));
+    if (autosaveOn2) {
+      const origem = bancoEmSessao[idComposto];
+      if (origem === 'duvida') {
+        delete bancoEmSessao[idComposto];
+        _excluirDoBancoPorId(idComposto).catch(e => console.warn(e.message));
+      } else if (origem === 'erro+duvida') {
+        bancoEmSessao[idComposto] = 'erro';
+        _atualizarOrigemNoBanco(idComposto, 'erro').catch(e => console.warn(e.message));
+      }
     }
   } else {
     duvidosas.add(current);
-    const origemAtual2 = bancoEmSessao[idComposto];
-    bancoEmSessao[idComposto] = (!origemAtual2 || origemAtual2 === 'duvida') ? 'duvida' : 'erro+duvida';
-    if (autosaveOn2) _autoSalvarNoBanco(current, bancoEmSessao[idComposto]);
+    if (autosaveOn2) _autoSalvarNoBanco(current, 'duvida');
   }
   renderQuestion(false);
 }
@@ -1811,84 +1805,14 @@ function showResult() {
   document.getElementById('rs-wrong').textContent        = score.wrong;
   document.getElementById('save-status').textContent     = '';
   autoSaveResult(n, pct);
-  // Mostra botão banco só se autosave desligado
-  const bancoBtn2 = document.getElementById('btn-res-banco');
-  if (bancoBtn2) {
-    const autosaveOn = loadConfig().autosave !== false;
-    bancoBtn2.style.display = autosaveOn ? 'none' : '';
-    if (!autosaveOn) { bancoBtn2.disabled = false; bancoBtn2.textContent = '💾 Salvar no Banco'; }
-  }
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function setResultButtonsDisabled(disabled) {
-  const bancoBtn = document.getElementById('btn-res-banco');
-  if (bancoBtn && !bancoBtn.textContent.includes('✅')) bancoBtn.disabled = disabled;
   ['btn-res-gab','btn-res-hist','btn-res-home'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.disabled = disabled;
   });
-}
-
-async function salvarBancoAoFinal() {
-  const btn = document.getElementById('btn-res-banco');
-  const statusEl = document.getElementById('save-banco-status');
-  const entries = Object.entries(bancoEmSessao);
-  if (!entries.length) {
-    statusEl.textContent = 'ℹ️ Nenhuma questão para salvar (sem erros ou dúvidas).';
-    statusEl.className = 'm-save-status loading'; return;
-  }
-  const cfg = loadConfig();
-  if (!cfg.sheetId || !cfg.clientEmail || !cfg.privateKey) {
-    statusEl.textContent = '⚙️ Configure o Google Sheets antes de salvar.';
-    statusEl.className = 'm-save-status loading'; return;
-  }
-  btn.disabled = true; btn.textContent = '⏳ Salvando...';
-  statusEl.textContent = ''; statusEl.className = 'm-save-status loading';
-  try {
-    const token  = await getAccessToken(cfg);
-    const hoje   = new Date().toLocaleDateString('pt-BR');
-    const parsed = parseFileName(uploadedFileName || cadTitle);
-    const arquivo = uploadedFileName || cadTitle;
-    const headers = ['ID','Disciplina','Tipo','Enunciado','Alternativas','Gabarito','Comentário','Banca','Cargo','Ano','Tema','Data_Adição','Arquivo','Origem','Dica'];
-    await ensureSheetExists(cfg.sheetId,'Banco_Simulado',token,headers);
-    const checkData = await (await fetch(
-      `https://sheets.googleapis.com/v4/spreadsheets/${cfg.sheetId}/values/${encodeURIComponent('Banco_Simulado')}!A:A`,
-      {headers:{'Authorization':'Bearer '+token}}
-    )).json();
-    const existingIds = new Set((checkData.values||[]).slice(1).map(r=>r[0]));
-    const toAppend = []; const toUpdate = [];
-    for (const [idComposto, origemFinal] of entries) {
-      const parts = idComposto.split('_');
-      const idOriginal = parts[parts.length-1];
-      const q = selectedQuestions.find(q => q.id.toUpperCase() === idOriginal.toUpperCase());
-      if (!q) continue;
-      const alts = q.alternativas ? q.alternativas.map(a=>a.letra+') '+a.texto).join(' | ') : '';
-      if (existingIds.has(idComposto)) {
-        const allIds = (checkData.values||[]).slice(1).map(r=>r[0]);
-        const rowIdx = allIds.indexOf(idComposto);
-        if (rowIdx !== -1) toUpdate.push({rowNum: rowIdx+2, origemFinal});
-      } else {
-        toAppend.push([idComposto,parsed.disciplina,q.tipo,q.enunciado,alts,q.gabarito,q.comentario||'',q.meta['banca']||'',q.meta['cargo']||'',q.meta['ano']||'',q.meta['tema']||'',hoje,arquivo,origemFinal,q.dica||'']);
-      }
-    }
-    if (toAppend.length) {
-      const batchUrl = `https://sheets.googleapis.com/v4/spreadsheets/${cfg.sheetId}/values/${encodeURIComponent('Banco_Simulado')}!A:O:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`;
-      await fetch(batchUrl,{method:'POST',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({values:toAppend})});
-    }
-    for (const {rowNum, origemFinal} of toUpdate) {
-      const updateUrl = `https://sheets.googleapis.com/v4/spreadsheets/${cfg.sheetId}/values/${encodeURIComponent('Banco_Simulado')}!N${rowNum}?valueInputOption=USER_ENTERED`;
-      await fetch(updateUrl,{method:'PUT',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({values:[[origemFinal]]})});
-    }
-    const total = toAppend.length + toUpdate.length;
-    statusEl.textContent = `✅ ${total} questão(ões) salva(s)! (${toAppend.length} nova(s), ${toUpdate.length} atualizada(s))`;
-    statusEl.className = 'm-save-status ok';
-    btn.textContent = '✅ Salvo'; bancoEmSessao = {};
-  } catch(e) {
-    statusEl.textContent = '❌ Erro: '+e.message;
-    statusEl.className = 'm-save-status err';
-    btn.disabled = false; btn.textContent = '💾 Salvar no Banco';
-  }
 }
 
 function restartQuiz() {
