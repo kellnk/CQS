@@ -1412,17 +1412,14 @@ function parseQuestions(text) {
     const gabLine   = lines.find(l => /^Gabarito:/i.test(l.trim())) || '';
     const gabarito  = gabLine.replace(/^Gabarito:/i, '').trim().toUpperCase();
     const comIdx = lines.findIndex(l => /^Comentário:/i.test(l.trim()));
+    const dicaIdx = lines.findIndex(l => /^Dica:/i.test(l.trim()));
     let comentario = '';
     if (comIdx !== -1) {
       const firstPart = lines[comIdx].replace(/^Comentário:/i, '').trim();
-      const subsequent = [];
-      for (let i = comIdx + 1; i < lines.length; i++) {
-        if (/^(QUESTÃO|Banca:|Tipo:|Enunciado:|Gabarito:|Dica:|[A-E]\))/i.test(lines[i].trim())) break;
-        subsequent.push(lines[i]);
-      }
+      const endIdx = dicaIdx !== -1 ? dicaIdx : lines.length;
+      const subsequent = lines.slice(comIdx + 1, endIdx);
       comentario = [firstPart, ...subsequent].join('\n').trim();
     }
-    const dicaIdx = lines.findIndex(l => /^Dica:/i.test(l.trim()));
     let dica = '';
     if (dicaIdx !== -1) {
       const firstPart = lines[dicaIdx].replace(/^Dica:/i, '').trim();
@@ -1722,7 +1719,7 @@ function confirmAnswer() {
   if (!correct && loadConfig().autosave !== false) {
     _autoSalvarNoBanco(current, 'erro');
   }
-  renderQuestion();
+  renderQuestion(false);
 }
 
 function toggleDuvidosa() {
