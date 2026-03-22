@@ -1432,8 +1432,12 @@ function parseQuestions(text) {
     }
     const alternativas = [];
     if (tipo === 'MULTIPLA') {
-      for (const line of lines) {
-        const m = line.trim().match(/^([A-E])\)\s*(.+)/);
+      const enuncStart = lines.findIndex(l => /^Enunciado:/i.test(l.trim()));
+      const comStart   = lines.findIndex(l => /^Comentário:/i.test(l.trim()));
+      const altEnd     = comStart !== -1 ? comStart : lines.length;
+      const altStart   = enuncStart !== -1 ? enuncStart : 0;
+      for (let i = altStart; i < altEnd; i++) {
+        const m = lines[i].trim().match(/^([A-E])\)\s*(.+)/);
         if (m) alternativas.push({ letra: m[1], texto: m[2].trim() });
       }
     }
