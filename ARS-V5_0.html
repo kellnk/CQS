@@ -1,0 +1,4348 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="default">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARS — Agenda de Revisão Espaçada</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<!-- JSZip CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+
+/* ══════════════════════════════════════════════
+   TEMA: DEFAULT (Azul Marinho)
+══════════════════════════════════════════════ */
+:root,
+[data-theme="default"] {
+  --navy:        #0D1B2A;
+  --navy-mid:    #1B2E45;
+  --blue:        #1F4E79;
+  --blue-mid:    #2E75B6;
+  --blue-light:  #DEEAF1;
+  --gold:        #C8960C;
+  --gold-light:  #FFF8E1;
+  --green:       #1B5E20;
+  --green-light: #E8F5E9;
+  --red:         #B71C1C;
+  --red-light:   #FFEBEE;
+  --gray:        #607D8B;
+  --gray-light:  #ECEFF1;
+  --white:       #FAFCFF;
+  --text:        #1A2332;
+  --serif:   'Source Serif 4', Georgia, serif;
+  --display: 'Playfair Display', Georgia, serif;
+  --mono:    'JetBrains Mono', monospace;
+
+  --bg-body:         #0D1B2A;
+  --bg-body-grad1:   rgba(46,117,182,0.08);
+  --bg-body-grad2:   rgba(31,78,121,0.12);
+  --bg-card:         #FAFCFF;
+  --bg-input:        #F5F9FC;
+  --bg-input-focus:  #ffffff;
+  --bg-header:       #1F4E79;
+  --bg-table-head:   #1B2E45;
+  --bg-row-hover:    #F5F9FC;
+  --bg-modal:        #FAFCFF;
+  --bg-tip:          #FFF8E1;
+  --bg-sidebar:      #F0F6FB;
+
+  --border-input:    #D0DEEA;
+  --border-card:     rgba(255,255,255,0.06);
+
+  --text-primary:    #1A2332;
+  --text-secondary:  #607D8B;
+  --text-header:     #ffffff;
+  --text-header-sub: rgba(255,255,255,0.65);
+  --text-logo:       #1F4E79;
+  --text-label:      #1F4E79;
+
+  --shadow-card:   0 32px 80px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.05);
+  --shadow-qcard:  0 8px 40px rgba(0,0,0,0.25);
+  --shadow-header: 0 4px 20px rgba(0,0,0,0.3);
+  --shadow-btn:    0 6px 24px rgba(31,78,121,0.35);
+
+  --overlay-bg:    rgba(0,0,0,0.6);
+
+  --tab-bg:         rgba(255,255,255,0.06);
+  --tab-inactive:   rgba(255,255,255,0.55);
+  --tab-active-bg:  #ffffff;
+  --tab-active-txt: #1F4E79;
+
+  --logo-gradient:   linear-gradient(135deg,#1F4E79,#2E75B6);
+  --header-gradient: linear-gradient(90deg,#1F4E79,#2E75B6,#C8960C);
+  --btn-gradient:    linear-gradient(135deg,#1F4E79 0%,#2E75B6 100%);
+
+  /* Revisão 1: vermelho — 24 HORAS */
+  --r1-color:  #B71C1C; --r1-bg: #FFFFFF;
+  /* Revisão 2: laranja forte — 7 DIAS (claramente diferente do vermelho) */
+  --r2-color:  #BF360C; --r2-bg: #FFCCBC;
+  /* Revisão 3: amarelo-mostarda — 21 DIAS */
+  --r3-color:  #F57F17; --r3-bg: #FFF9C4;
+  /* Revisão 4: verde — 2 MESES */
+  --r4-color:  #1B5E20; --r4-bg: #C8E6C9;
+  /* Revisão 5: azul — 4 MESES */
+  --r5-color:  #0D47A1; --r5-bg: #BBDEFB;
+  /* Revisão 6: roxo — 8 MESES */
+  --r6-color:  #4A148C; --r6-bg: #E1BEE7;
+  /* Revisão 7: teal — 1 ANO */
+  --r7-color:  #004D40; --r7-bg: #B2DFDB;
+  /* Revisão 8: marrom — 16 MESES */
+  --r8-color:  #3E2723; --r8-bg: #D7CCC8;
+  /* Revisão 9: azul-ardósia — 20 MESES */
+  --r9-color:  #263238; --r9-bg: #CFD8DC;
+  /* Revisão 10: índigo — 2 ANOS */
+  --r10-color: #1A237E; --r10-bg: #C5CAE9;
+}
+
+/* ══════════════════════════════════════════════
+   TEMA: DARK
+══════════════════════════════════════════════ */
+[data-theme="dark"] {
+  --navy:        #050C16;
+  --navy-mid:    #0C1929;
+  --blue:        #1A3A5C;
+  --blue-mid:    #2B6CB0;
+  --blue-light:  #1E3A52;
+  --gold:        #D4A017;
+  --gold-light:  #26200A;
+  --green:       #276221;
+  --green-light: #0B2410;
+  --red:         #C0392B;
+  --red-light:   #2A0A0A;
+  --gray:        #8899A6;
+  --gray-light:  #1A2535;
+  --white:       #121E2D;
+  --text:        #DDE8F0;
+
+  --bg-body:         #070E1A;
+  --bg-body-grad1:   rgba(20,60,120,0.18);
+  --bg-body-grad2:   rgba(10,30,70,0.22);
+  --bg-card:         #0F1C2D;
+  --bg-input:        #0A1420;
+  --bg-input-focus:  #0C1929;
+  --bg-header:       #0C1929;
+  --bg-table-head:   #070E1A;
+  --bg-row-hover:    #0D1B2C;
+  --bg-modal:        #0F1C2D;
+  --bg-tip:          #1A1500;
+  --bg-sidebar:      #0A1520;
+
+  --border-input:    #1C3050;
+  --border-card:     rgba(255,255,255,0.04);
+
+  --text-primary:    #DDE8F0;
+  --text-secondary:  #8899A6;
+  --text-header:     #D0E4F4;
+  --text-header-sub: rgba(180,210,240,0.6);
+  --text-logo:       #7FB8E8;
+  --text-label:      #7FB8E8;
+
+  --shadow-card:   0 32px 80px rgba(0,0,0,0.7),0 0 0 1px rgba(255,255,255,0.04);
+  --shadow-qcard:  0 8px 40px rgba(0,0,0,0.6);
+  --shadow-header: 0 4px 20px rgba(0,0,0,0.6);
+  --shadow-btn:    0 6px 24px rgba(15,50,100,0.5);
+
+  --overlay-bg:    rgba(0,0,0,0.8);
+
+  --tab-bg:         rgba(255,255,255,0.04);
+  --tab-inactive:   rgba(160,200,240,0.4);
+  --tab-active-bg:  #152030;
+  --tab-active-txt: #7FB8E8;
+
+  --logo-gradient:   linear-gradient(135deg,#1A3A5C,#2B6CB0);
+  --header-gradient: linear-gradient(90deg,#0C1929,#1A3A5C,#2B6CB0);
+  --btn-gradient:    linear-gradient(135deg,#1A3A5C 0%,#2B6CB0 100%);
+
+  --r1-color:  #EF9A9A; --r1-bg: #1A2535;
+  --r2-color:  #FFAB76; --r2-bg: #4E2800;
+  --r3-color:  #FFE57F; --r3-bg: #3A3000;
+  --r4-color:  #A5D6A7; --r4-bg: #0B2410;
+  --r5-color:  #90CAF9; --r5-bg: #0D2040;
+  --r6-color:  #CE93D8; --r6-bg: #2A0E35;
+  --r7-color:  #80CBC4; --r7-bg: #0A2020;
+  --r8-color:  #BCAAA4; --r8-bg: #1E1410;
+  --r9-color:  #B0BEC5; --r9-bg: #151E25;
+  --r10-color: #9FA8DA; --r10-bg: #0E1230;
+}
+
+/* ══════════════════════════════════════════════
+   TEMA: SEPIA
+══════════════════════════════════════════════ */
+[data-theme="sepia"] {
+  --navy:        #2C1A0A;
+  --navy-mid:    #3D2510;
+  --blue:        #5C3A1E;
+  --blue-mid:    #8B5A2B;
+  --blue-light:  #EDE0CC;
+  --gold:        #9A6C08;
+  --gold-light:  #FDF0DC;
+  --green:       #2E5016;
+  --green-light: #E8F2DC;
+  --red:         #8B1A1A;
+  --red-light:   #FAE5E5;
+  --gray:        #7A6450;
+  --gray-light:  #EDE0CC;
+  --white:       #FDF7EE;
+  --text:        #2C1A0A;
+
+  --bg-body:         #2C1A0A;
+  --bg-body-grad1:   rgba(120,80,35,0.12);
+  --bg-body-grad2:   rgba(80,50,18,0.18);
+  --bg-card:         #FDF7EE;
+  --bg-input:        #F7EFE2;
+  --bg-input-focus:  #FDF7EE;
+  --bg-header:       #3D2510;
+  --bg-table-head:   #2C1A0A;
+  --bg-row-hover:    #F7EFE2;
+  --bg-modal:        #FDF7EE;
+  --bg-tip:          #FDF0DC;
+  --bg-sidebar:      #F5EDE0;
+
+  --border-input:    #CEBA9A;
+  --border-card:     rgba(180,140,90,0.15);
+
+  --text-primary:    #2C1A0A;
+  --text-secondary:  #7A6450;
+  --text-header:     #F5EDE0;
+  --text-header-sub: rgba(240,220,195,0.65);
+  --text-logo:       #5C3A1E;
+  --text-label:      #5C3A1E;
+
+  --shadow-card:   0 32px 80px rgba(44,26,10,0.45),0 0 0 1px rgba(180,140,90,0.15);
+  --shadow-qcard:  0 8px 40px rgba(44,26,10,0.2);
+  --shadow-header: 0 4px 20px rgba(44,26,10,0.4);
+  --shadow-btn:    0 6px 24px rgba(92,58,30,0.4);
+
+  --overlay-bg:    rgba(44,26,10,0.7);
+
+  --tab-bg:         rgba(255,255,255,0.08);
+  --tab-inactive:   rgba(240,220,195,0.55);
+  --tab-active-bg:  #FDF7EE;
+  --tab-active-txt: #5C3A1E;
+
+  --logo-gradient:   linear-gradient(135deg,#5C3A1E,#8B5A2B);
+  --header-gradient: linear-gradient(90deg,#5C3A1E,#8B5A2B,#9A6C08);
+  --btn-gradient:    linear-gradient(135deg,#5C3A1E 0%,#8B5A2B 100%);
+
+  --r1-color:  #7B1111; --r1-bg: #FFFFFF;
+  --r2-color:  #7A3300; --r2-bg: #F5D9C0;
+  --r3-color:  #5D3E00; --r3-bg: #F5EAB0;
+  --r4-color:  #1E4010; --r4-bg: #C8DDB8;
+  --r5-color:  #0D2E52; --r5-bg: #B8CCDF;
+  --r6-color:  #350F52; --r6-bg: #D4BADE;
+  --r7-color:  #0A3530; --r7-bg: #B4D4D0;
+  --r8-color:  #2C1508; --r8-bg: #D4C4B8;
+  --r9-color:  #2E2818; --r9-bg: #D8D0C0;
+  --r10-color: #0E1245; --r10-bg: #C0C4DC;
+}
+
+/* SEPIA: ajuste pontual no bg */
+[data-theme="sepia"] {
+  --r1-bg: #FDF7EE;
+}
+
+/* DARK: ajuste para o dia atual do calendário */
+[data-theme="dark"] .cal-day-today {
+  background: #1A3A5C !important;
+  color: #7FB8E8 !important;
+  border-color: var(--blue-mid) !important;
+}
+
+/* ══════════════════════════════════════════════
+   BASE
+══════════════════════════════════════════════ */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg-body);
+  color: var(--text-primary);
+  font-family: var(--serif);
+  min-height: 100vh;
+  background-image:
+    radial-gradient(ellipse at 20% 50%, var(--bg-body-grad1) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 20%, var(--bg-body-grad2) 0%, transparent 50%);
+  transition: background 0.35s ease, color 0.25s ease;
+}
+
+/* ══════════════════════════════════════════════
+   HEADER
+══════════════════════════════════════════════ */
+.app-header {
+  background: var(--bg-header);
+  padding: 0 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 60px;
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  box-shadow: var(--shadow-header);
+  transition: background 0.35s;
+}
+
+.header-left { display: flex; align-items: center; gap: 14px; }
+
+.header-logo {
+  font-family: var(--display);
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--text-header);
+  letter-spacing: -0.02em;
+}
+
+.header-logo span {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text-header-sub);
+  font-family: var(--serif);
+  margin-left: 8px;
+  letter-spacing: 0;
+}
+
+.header-nav {
+  display: flex;
+  gap: 4px;
+}
+
+.btn-nav-tab {
+  padding: 7px 16px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--text-header-sub);
+  font-family: var(--serif);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-nav-tab:hover { background: rgba(255,255,255,0.12); color: var(--text-header); }
+.btn-nav-tab.active { background: rgba(255,255,255,0.18); color: var(--text-header); }
+.btn-nav-icon { padding: 7px 10px; font-size: 16px; margin-left: 4px; }
+
+.header-right { display: flex; align-items: center; gap: 10px; }
+
+.btn-sync {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 8px;
+  border: 1.5px solid rgba(255,255,255,0.25);
+  background: rgba(255,255,255,0.08);
+  color: var(--text-header);
+  font-family: var(--serif);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-sync:hover { background: rgba(255,255,255,0.18); }
+.btn-sync.syncing .sync-icon { animation: spin 1s linear infinite; }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ══════════════════════════════════════════════
+   SCREENS
+══════════════════════════════════════════════ */
+.screen { display: none; min-height: calc(100vh - 60px); }
+.screen.active { display: block; }
+
+.screen-body {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 32px 20px 80px;
+}
+
+/* ══════════════════════════════════════════════
+   TELA 1 — AGENDA DO DIA
+══════════════════════════════════════════════ */
+.agenda-hero {
+  background: var(--bg-card);
+  border-radius: 20px;
+  padding: 28px 32px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-qcard);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  transition: background 0.35s;
+}
+
+.agenda-date-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.agenda-date-main {
+  font-family: var(--display);
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.agenda-date-sub {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+.agenda-stats {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.agenda-stat {
+  text-align: center;
+  padding: 12px 20px;
+  border-radius: 12px;
+  background: var(--bg-input);
+  min-width: 80px;
+}
+
+.agenda-stat-n {
+  font-family: var(--display);
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--blue-mid);
+}
+
+.agenda-stat-l {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-secondary);
+  margin-top: 3px;
+}
+
+.agenda-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-secondary);
+}
+.agenda-empty-icon { font-size: 56px; display: block; margin-bottom: 16px; }
+.agenda-empty-title { font-family: var(--display); font-size: 22px; color: var(--text-primary); margin-bottom: 8px; }
+.agenda-empty-sub { font-size: 14px; line-height: 1.6; }
+
+.freq-group { margin-bottom: 28px; }
+
+.freq-group-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 0 4px;
+}
+
+.freq-badge {
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.freq-instrument {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 600;
+  background: var(--bg-input);
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-family: var(--mono);
+}
+
+/* ══════════════════════════════════════════════
+   ITEM CARD — v3 (fundo colorido por frequência)
+══════════════════════════════════════════════ */
+.item-card {
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-bottom: 6px;
+  border-left: 4px solid transparent;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  transition: filter 0.15s, transform 0.15s;
+  cursor: pointer;
+  /* fundo colorido injetado inline via style="background:..." */
+}
+.item-card:hover {
+  transform: translateX(3px);
+  filter: brightness(0.96);
+}
+[data-theme="dark"] .item-card:hover { filter: brightness(1.08); }
+
+.item-card-left { flex: 1; min-width: 0; }
+
+.item-card-disc {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-family: var(--mono);
+  margin-bottom: 2px;
+  /* cor injetada inline */
+}
+
+.item-card-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.item-card-right {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.item-card-instrument {
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--mono);
+  padding: 3px 8px;
+  border-radius: 6px;
+  /* bg/color injetados inline */
+}
+
+.item-card-date-short {
+  font-size: 12px;
+  font-family: var(--mono);
+  font-weight: 600;
+  /* color injetada inline */
+  white-space: nowrap;
+}
+
+/* ══════════════════════════════════════════════
+   TELA 2 — CALENDÁRIO
+══════════════════════════════════════════════ */
+.cal-wrap {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 768px) {
+  .cal-wrap { grid-template-columns: 1fr; }
+}
+
+.cal-card {
+  background: var(--bg-card);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: var(--shadow-qcard);
+  transition: background 0.35s;
+}
+
+.cal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.cal-month-label {
+  font-family: var(--display);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.btn-cal-nav {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border-input);
+  background: var(--bg-input);
+  color: var(--text-primary);
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn-cal-nav:hover { border-color: var(--blue-mid); background: var(--blue-light); }
+
+.cal-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7,1fr);
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.cal-weekday {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  padding: 6px 0;
+}
+
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7,1fr);
+  gap: 4px;
+}
+
+.cal-day {
+  aspect-ratio: 1;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+  position: relative;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  background: transparent;
+  border: 2px solid transparent;
+  gap: 2px;
+}
+
+.cal-day:hover:not(.cal-day-empty) { background: var(--bg-input); border-color: var(--border-input); }
+.cal-day-empty { cursor: default; opacity: 0; pointer-events: none; }
+.cal-day-today { border-color: var(--blue-mid) !important; background: var(--blue-light) !important; color: var(--blue) !important; }
+.cal-day-selected { border-color: var(--gold) !important; background: var(--gold-light) !important; }
+.cal-day-other-month { opacity: 0.3; }
+
+.cal-day-dots {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: nowrap;
+  max-width: 100%;
+  height: 6px;
+}
+.cal-day-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: inline-block;
+}
+
+/* Sidebar do calendário */
+.cal-sidebar {
+  background: var(--bg-card);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: var(--shadow-qcard);
+  transition: background 0.35s;
+  position: sticky;
+  top: 80px;
+}
+
+.cal-sidebar-title {
+  font-family: var(--display);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.cal-sidebar-sub {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+  font-family: var(--mono);
+}
+
+.cal-sidebar-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+.status-future  { background: var(--gray-light);  color: var(--gray);  }
+.status-empty   { background: var(--bg-input);    color: var(--text-secondary); }
+
+.cal-sidebar-items { display: flex; flex-direction: column; gap: 8px; }
+
+.cal-sidebar-item {
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--bg-input);
+  border-left: 3px solid transparent;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+.cal-sidebar-item:hover { transform: translateX(2px); }
+
+.cal-sidebar-item-freq {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  margin-bottom: 3px;
+}
+
+.cal-sidebar-item-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+.cal-sidebar-item-disc {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+  font-family: var(--mono);
+}
+
+.cal-sidebar-empty {
+  text-align: center;
+  padding: 30px 10px;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+/* ══════════════════════════════════════════════
+   TELA 3 — PRÓXIMOS 30 DIAS
+══════════════════════════════════════════════ */
+.future-day-group { margin-bottom: 24px; }
+
+.future-day-header {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  font-family: var(--mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  padding: 0 4px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.future-day-count {
+  background: var(--blue-light);
+  color: var(--blue-mid);
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+}
+
+/* ══════════════════════════════════════════════
+   TELA 4 — SETUP
+══════════════════════════════════════════════ */
+.setup-card {
+  background: var(--bg-card);
+  border-radius: 20px;
+  padding: 36px 40px;
+  box-shadow: var(--shadow-card);
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 24px;
+  transition: background 0.35s;
+}
+
+.setup-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background: var(--header-gradient);
+}
+
+.setup-section-title {
+  font-family: var(--display);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.setup-section-sub {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 24px;
+  line-height: 1.6;
+}
+
+.setup-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-label);
+  margin-bottom: 8px;
+  margin-top: 18px;
+}
+
+.setup-input {
+  width: 100%;
+  border: 2px solid var(--border-input);
+  border-radius: 10px;
+  padding: 11px 14px;
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--text-primary);
+  background: var(--bg-input);
+  transition: border-color 0.2s, background 0.25s;
+}
+.setup-input:focus { outline: none; border-color: var(--blue-mid); background: var(--bg-input-focus); }
+
+.disc-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+
+.disc-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--bg-input);
+  border-radius: 12px;
+  border: 1.5px solid var(--border-input);
+  transition: background 0.25s;
+}
+
+.disc-item-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--logo-gradient);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.disc-item-info { flex: 1; min-width: 0; }
+
+.disc-item-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.disc-item-code {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--blue-mid);
+  letter-spacing: 0.08em;
+  margin-top: 1px;
+}
+
+.disc-item-id {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.btn-disc-remove {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1.5px solid transparent;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+.btn-disc-remove:hover { background: var(--red-light); color: var(--red); border-color: var(--red); }
+
+.btn-add-disc {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 18px;
+  border-radius: 10px;
+  border: 2px dashed var(--border-input);
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--serif);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+  justify-content: center;
+}
+.btn-add-disc:hover { border-color: var(--blue-mid); color: var(--blue-mid); background: var(--blue-light); }
+
+.btn-save-setup {
+  width: 100%;
+  padding: 14px;
+  background: var(--btn-gradient);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-family: var(--serif);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: var(--shadow-btn);
+  margin-top: 24px;
+}
+.btn-save-setup:hover { transform: translateY(-2px); }
+
+/* Guia de setup */
+.setup-guide {
+  background: var(--bg-tip);
+  border: 1px solid rgba(200,150,12,0.3);
+  border-left: 4px solid var(--gold);
+  border-radius: 14px;
+  padding: 20px 22px;
+  margin-top: 20px;
+}
+
+.setup-guide-title {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 12px;
+}
+
+.setup-guide ol {
+  padding-left: 18px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 2;
+}
+
+.setup-guide code {
+  font-family: var(--mono);
+  font-size: 12px;
+  background: var(--bg-input);
+  padding: 1px 6px;
+  border-radius: 4px;
+  color: var(--text-primary);
+}
+
+/* ══════════════════════════════════════════════
+   MODAL — ADICIONAR DISCIPLINA
+══════════════════════════════════════════════ */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: var(--overlay-bg);
+  z-index: 9000;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-overlay.open { display: flex; }
+
+.modal-box {
+  background: var(--bg-modal);
+  border-radius: 18px;
+  padding: 32px 36px;
+  max-width: 480px;
+  width: 100%;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+  position: relative;
+  transition: background 0.3s;
+}
+
+.modal-box::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  border-radius: 18px 18px 0 0;
+  background: var(--header-gradient);
+}
+
+.modal-title {
+  font-family: var(--display);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.modal-sub {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 22px;
+  line-height: 1.5;
+}
+
+.modal-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.modal-btns {
+  display: flex;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.btn-modal-ok {
+  flex: 1;
+  padding: 12px;
+  background: var(--blue);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-family: var(--serif);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-modal-ok:hover { background: var(--blue-mid); }
+
+.btn-modal-cancel {
+  padding: 12px 20px;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 2px solid var(--border-input);
+  border-radius: 10px;
+  font-family: var(--serif);
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-modal-cancel:hover { border-color: var(--gray); }
+
+/* ══════════════════════════════════════════════
+   MODAL — VIEWER DE CONTEÚDO
+══════════════════════════════════════════════ */
+#modal-viewer .modal-box {
+  max-width: 740px;
+  width: 95vw;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+  transition: max-width 0.3s ease, max-height 0.3s ease, width 0.3s ease;
+}
+
+/* Modo fullscreen: ocupa tela inteira menos uma margem mínima */
+#modal-viewer.viewer-fullscreen {
+  padding: 0;
+}
+#modal-viewer.viewer-fullscreen .modal-box {
+  max-width: 100vw;
+  width: 100vw;
+  max-height: 100vh;
+  border-radius: 0;
+}
+#modal-viewer.viewer-fullscreen .viewer-body {
+  padding: 32px max(calc((100vw - 794px)/2), 32px); /* margens laterais A4 */
+}
+
+.viewer-header {
+  padding: 18px 24px 14px;
+  border-bottom: 1px solid var(--border-input);
+  flex-shrink: 0;
+}
+
+.viewer-header-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.viewer-disc-badge {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.viewer-title {
+  font-family: var(--display);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.3;
+  margin-bottom: 6px;
+}
+
+.viewer-meta {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.viewer-meta-badge {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 6px;
+  background: var(--bg-input);
+  color: var(--text-secondary);
+}
+
+.btn-viewer-close,
+.btn-viewer-expand {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border-input);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+.btn-viewer-close:hover  { background: var(--red-light);  color: var(--red);      border-color: var(--red); }
+.btn-viewer-expand:hover { background: var(--blue-light); color: var(--blue-mid); border-color: var(--blue-mid); }
+.btn-viewer-expand.active { background: var(--blue-light); color: var(--blue-mid); border-color: var(--blue-mid); }
+
+.viewer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 28px;
+  transition: padding 0.3s ease;
+  position: relative;
+}
+
+.viewer-loading {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-secondary);
+}
+
+/* Diagnóstico de comentários */
+.vc-comments-diag {
+  margin-top: 24px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: var(--bg-input);
+  border: 1px dashed var(--border-input);
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+.vc-comments-diag-error {
+  background: var(--red-light);
+  border-color: var(--red);
+  color: var(--red);
+}
+
+.viewer-loading-icon {
+  font-size: 36px;
+  display: block;
+  margin-bottom: 12px;
+  animation: spin 1.5s linear infinite;
+}
+
+.viewer-content {
+  font-family: var(--serif);
+  font-size: 14px;
+  line-height: 1.85;
+  color: var(--text-primary);
+  word-break: break-word;
+}
+
+/* ── Headings por nível ───────────────────── */
+.viewer-content .vc-heading {
+  font-family: var(--display);
+  font-weight: 700;
+  color: var(--blue-mid);
+  margin: 18px 0 6px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border-input);
+  line-height: 1.3;
+}
+.viewer-content .vc-heading:first-child { margin-top: 0; }
+.viewer-content .vc-h1 { font-size: 18px; }
+.viewer-content .vc-h2 { font-size: 16px; }
+.viewer-content .vc-h3 { font-size: 15px; }
+.viewer-content .vc-h4 { font-size: 14px; border-bottom: none; color: var(--text-primary); }
+.viewer-content .vc-h5 { font-size: 13px; border-bottom: none; color: var(--text-secondary); }
+.viewer-content .vc-h6 { font-size: 12px; border-bottom: none; color: var(--text-secondary); font-style: italic; }
+
+/* ── Linha de data ───────────────────────── */
+.viewer-content .vc-date-line {
+  background: var(--bg-input);
+  border-left: 3px solid var(--blue-mid);
+  padding: 3px 10px;
+  border-radius: 0 6px 6px 0;
+  margin: 4px 0 8px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* ── Bullet ──────────────────────────────── */
+.viewer-content .vc-bullet {
+  position: relative;
+  margin: 1px 0;
+}
+.viewer-content .vc-bullet::before {
+  content: '•';
+  color: var(--blue-mid);
+  font-weight: 700;
+  margin-right: 6px;
+}
+
+/* ── Linha normal ────────────────────────── */
+.viewer-content .vc-line { margin: 1px 0; }
+
+/* ── Espaçador ───────────────────────────── */
+.viewer-content .vc-spacer { height: 6px; }
+
+/* ── Tabelas ─────────────────────────────── */
+.viewer-content .vc-table-wrap {
+  overflow-x: auto;
+  margin: 10px 0;
+  border-radius: 10px;
+  border: 1px solid var(--border-input);
+}
+
+.viewer-content .vc-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.viewer-content .vc-table th,
+.viewer-content .vc-table td {
+  padding: 7px 12px;
+  border: 1px solid var(--border-input);
+  vertical-align: top;
+  text-align: left;
+}
+
+.viewer-content .vc-table th {
+  background: var(--bg-table-head);
+  color: var(--text-header);
+  font-weight: 700;
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.viewer-content .vc-table tr:nth-child(even) td {
+  background: var(--bg-input);
+}
+
+.viewer-content .vc-table tr:hover td {
+  background: var(--bg-row-hover);
+}
+
+.viewer-content .vc-bullet-cell { margin: 1px 0; padding-left: 12px; }
+
+/* ── Highlight de texto grifado (como no Google Docs) ── */
+.viewer-content mark.vc-highlight {
+  background: rgba(255, 214, 0, 0.45);
+  border-radius: 2px;
+  padding: 0 1px;
+  cursor: pointer;
+  border-bottom: 2px solid rgba(200, 150, 0, 0.7);
+  transition: background 0.15s;
+  font-style: inherit;
+}
+.viewer-content mark.vc-highlight:hover {
+  background: rgba(255, 190, 0, 0.65);
+}
+[data-theme="dark"] .viewer-content mark.vc-highlight {
+  background: rgba(200, 150, 0, 0.35);
+  border-bottom-color: rgba(200, 150, 0, 0.8);
+}
+
+/* ── Popover de comentário ─────────────── */
+.vc-popover {
+  position: absolute;
+  z-index: 999;
+  width: 300px;
+  max-width: calc(100% - 16px);
+  background: var(--bg-modal);
+  border: 1.5px solid var(--gold);
+  border-radius: 12px;
+  padding: 14px 16px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+  font-size: 13px;
+  line-height: 1.55;
+}
+.vc-popover-close {
+  margin-left: auto;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: 14px;
+  padding: 0 2px;
+  border-radius: 4px;
+  transition: color 0.15s;
+}
+.vc-popover-close:hover { color: var(--red); }
+
+/* ── Estrutura interna de comentário ───── */
+.viewer-content .vc-cm-header,
+.vc-popover .vc-cm-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+.viewer-content .vc-cm-author,
+.vc-popover .vc-cm-author {
+  font-weight: 700;
+  font-size: 11px;
+  color: var(--gold);
+  font-family: var(--mono);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.viewer-content .vc-cm-time,
+.vc-popover .vc-cm-time {
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-family: var(--mono);
+}
+.viewer-content .vc-cm-quote,
+.vc-popover .vc-cm-quote {
+  font-style: italic;
+  font-size: 12px;
+  color: var(--text-secondary);
+  border-left: 2px solid var(--gold);
+  padding: 2px 8px;
+  margin-bottom: 6px;
+  border-radius: 0 4px 4px 0;
+  background: rgba(200,150,12,0.07);
+  line-height: 1.4;
+}
+.viewer-content .vc-cm-body,
+.vc-popover .vc-cm-body {
+  color: var(--text-primary);
+  line-height: 1.6;
+}
+.viewer-content .vc-cm-reply,
+.vc-popover .vc-cm-reply {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-input);
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.viewer-content .vc-cm-reply-author,
+.vc-popover .vc-cm-reply-author {
+  font-weight: 700;
+  color: var(--text-secondary);
+  margin-right: 4px;
+  font-family: var(--mono);
+}
+
+/* ── Comentário inline (fallback sem âncora) ── */
+.viewer-content .vc-comment-inline {
+  margin: 6px 0 10px;
+  padding: 10px 14px;
+  background: var(--gold-light);
+  border-left: 3px solid var(--gold);
+  border-radius: 0 10px 10px 0;
+  font-size: 13px;
+}
+[data-theme="dark"] .viewer-content .vc-heading {
+  color: #7FB8E8;
+  border-bottom-color: var(--border-input);
+}
+/* Em modo noturno, cores de texto inline do Google Docs (pensadas para fundo branco)
+   ficam ilegíveis. Força o texto do viewer para a cor padrão do tema,
+   preservando apenas bold/italic/underline da formatação original. */
+[data-theme="dark"] .viewer-content .vc-line span[style*="color"],
+[data-theme="dark"] .viewer-content .vc-bullet span[style*="color"],
+[data-theme="dark"] .viewer-content .vc-heading span[style*="color"] {
+  color: inherit !important;
+}
+[data-theme="dark"] .viewer-content .vc-line,
+[data-theme="dark"] .viewer-content .vc-bullet {
+  color: var(--text-primary);
+}
+/* Exceção: mantém cores de highlight/background nos spans */
+[data-theme="dark"] .viewer-content span[style*="background"] {
+  opacity: 0.85;
+}
+[data-theme="dark"] .viewer-content .vc-comment-inline {
+  background: rgba(212,160,23,0.10);
+}
+
+/* ── Seção fallback ─────────────────────── */
+.vc-comments-section {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 2px dashed var(--border-input);
+}
+.vc-comments-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+  font-family: var(--mono);
+}
+
+.viewer-error {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--red);
+}
+
+/* ══════════════════════════════════════════════
+   FAB DE TEMA
+══════════════════════════════════════════════ */
+#theme-fab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: flex-end;
+  gap: 8px;
+  user-select: none;
+}
+
+#theme-fab-btn {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.18);
+  background: var(--bg-header);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.45);
+  cursor: pointer;
+  font-size: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+  flex-shrink: 0;
+}
+#theme-fab-btn:hover { transform: scale(1.1); }
+#theme-fab-btn:active { transform: scale(0.95); }
+
+#theme-fab-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(8px) scale(0.95);
+  transition: opacity 0.22s ease, transform 0.22s ease;
+  transform-origin: bottom right;
+}
+#theme-fab-menu.open { opacity: 1; pointer-events: auto; transform: translateY(0) scale(1); }
+
+.theme-opt {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 14px 9px 11px;
+  border-radius: 12px;
+  border: 1.5px solid transparent;
+  background: var(--bg-card);
+  cursor: pointer;
+  font-family: var(--serif);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.3);
+  transition: border-color 0.18s, transform 0.18s;
+}
+.theme-opt:hover { border-color: var(--blue-mid); transform: translateX(-4px); }
+.theme-opt.active { border-color: var(--blue-mid); background: var(--blue-light); color: var(--blue); }
+
+.theme-dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; border: 1.5px solid rgba(0,0,0,0.15); }
+.theme-dot-default { background: linear-gradient(135deg,#1F4E79,#2E75B6); }
+.theme-dot-dark    { background: linear-gradient(135deg,#070E1A,#1A3A5C); border-color: rgba(255,255,255,0.25); }
+.theme-dot-sepia   { background: linear-gradient(135deg,#8B5A2B,#FDF7EE); }
+
+[data-theme="dark"] .theme-opt { background: #1A2E44; color: #C8DCEF; }
+[data-theme="dark"] .theme-opt.active { background: #1E3A58; border-color: #4A9EE0; color: #90C8F0; }
+
+/* ══════════════════════════════════════════════
+   TOAST
+══════════════════════════════════════════════ */
+#toast {
+  position: fixed;
+  bottom: 90px;
+  right: 24px;
+  z-index: 9998;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-family: var(--serif);
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.3s, transform 0.3s;
+  pointer-events: none;
+  max-width: 300px;
+}
+#toast.show { opacity: 1; transform: translateY(0); }
+#toast.success { background: var(--green-light); color: var(--green); }
+#toast.error   { background: var(--red-light);   color: var(--red);   }
+#toast.info    { background: var(--blue-light);   color: var(--blue);  }
+
+/* ══════════════════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════════════════ */
+@media (max-width: 600px) {
+  .app-header { padding: 0 16px; }
+  .header-logo span { display: none; }
+  .btn-nav-tab { padding: 6px 10px; font-size: 12px; }
+  .screen-body { padding: 20px 14px 80px; }
+  .agenda-hero { flex-direction: column; align-items: flex-start; }
+  .setup-card { padding: 24px 20px; }
+  #theme-fab { bottom: 16px; right: 16px; }
+  .modal-row { grid-template-columns: 1fr; }
+  #modal-viewer .modal-box { max-height: 95vh; }
+}
+
+/* ══════════════════════════════════════════════
+   CACHE PANEL
+══════════════════════════════════════════════ */
+.cache-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.cache-stat-box {
+  background: var(--bg-input);
+  border-radius: 12px;
+  padding: 14px 16px;
+  border: 1.5px solid var(--border-input);
+}
+
+.cache-stat-box-n {
+  font-family: var(--display);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--blue-mid);
+  line-height: 1;
+}
+
+.cache-stat-box-l {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+.cache-tab-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 260px;
+  overflow-y: auto;
+  margin-top: 8px;
+}
+
+.cache-tab-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  background: var(--bg-input);
+  border-radius: 10px;
+  font-size: 12px;
+  border: 1px solid var(--border-input);
+}
+
+.cache-tab-disc {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--blue-mid);
+  flex-shrink: 0;
+  min-width: 52px;
+}
+
+.cache-tab-name {
+  flex: 1;
+  color: var(--text-primary);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cache-tab-size {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.cache-tab-date {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.btn-cache-clear {
+  margin-top: 16px;
+  padding: 10px 18px;
+  border-radius: 10px;
+  border: 1.5px solid var(--red);
+  background: transparent;
+  color: var(--red);
+  font-family: var(--serif);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-cache-clear:hover { background: var(--red-light); }
+
+/* ══════════════════════════════════════════════
+   SA UPLOAD CARD
+══════════════════════════════════════════════ */
+.sa-upload-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 32px 20px;
+  border: 2px dashed var(--border-input);
+  border-radius: 14px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s;
+  background: var(--bg-input);
+  margin-bottom: 4px;
+}
+.sa-upload-btn:hover {
+  border-color: var(--blue-mid);
+  background: var(--blue-light);
+}
+.sa-upload-icon { font-size: 32px; }
+.sa-upload-label {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.sa-upload-hint {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.sa-connected-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  background: var(--green-light);
+  border: 1.5px solid var(--green);
+  border-radius: 12px;
+  margin-bottom: 4px;
+}
+.sa-connected-icon { font-size: 22px; flex-shrink: 0; }
+.sa-connected-info { flex: 1; min-width: 0; }
+.sa-connected-email {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--green);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sa-connected-project {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+.sa-change-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border-input);
+  background: var(--bg-input);
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  text-decoration: none;
+}
+.sa-change-btn:hover { border-color: var(--blue-mid); background: var(--blue-light); }
+
+[data-theme="dark"] .sa-connected-card {
+  background: rgba(27,94,32,0.18);
+  border-color: rgba(165,214,167,0.4);
+}
+[data-theme="dark"] .sa-connected-email { color: #A5D6A7; }
+
+/* ══════════════════════════════════════════════
+   SHEETS SYNC SECTION
+══════════════════════════════════════════════ */
+.sheets-sync-section {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px dashed var(--border-input);
+}
+
+.sheets-sync-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.sheets-sync-sub {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 14px;
+}
+
+.sheets-sync-row {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.btn-sheets-sync {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 18px;
+  background: var(--btn-gradient);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-family: var(--serif);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  box-shadow: var(--shadow-btn);
+  flex-shrink: 0;
+}
+.btn-sheets-sync:hover { transform: translateY(-1px); }
+.btn-sheets-sync:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+.sheets-sync-icon { font-size: 15px; }
+.btn-sheets-sync.syncing .sheets-sync-icon { animation: spin 1s linear infinite; }
+
+.sheets-sync-status {
+  margin-top: 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+.sheets-sync-status.success { background: var(--green-light); color: var(--green); }
+.sheets-sync-status.error   { background: var(--red-light);   color: var(--red);   }
+.sheets-sync-status.info    { background: var(--blue-light);  color: var(--blue);  }
+
+.log-panel { position:fixed; bottom:90px; right:24px; width:min(560px,90vw); height:min(420px,70vh); background:var(--bg-card); border:1.5px solid var(--border-input); border-radius:14px; box-shadow:0 12px 48px rgba(0,0,0,0.4); display:none; flex-direction:column; z-index:9997; overflow:hidden; }
+.log-panel.open { display:flex; }
+.log-panel-header { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-bottom:1px solid var(--border-input); background:var(--bg-input); }
+.log-panel-title { font-family:var(--display); font-weight:700; font-size:14px; color:var(--text-primary); }
+.log-panel-actions { display:flex; gap:6px; }
+.log-panel-actions button { padding:6px 12px; border:1.5px solid var(--border-input); border-radius:8px; background:transparent; font-size:12px; cursor:pointer; color:var(--text-primary); font-family:var(--serif); transition:all 0.2s; }
+.log-panel-actions button:hover { border-color:var(--blue-mid); background:var(--bg-input); }
+#btn-copy-logs.copied { background:var(--green-light); color:var(--green); border-color:var(--green); }
+.log-panel-body { flex:1; overflow-y:auto; padding:8px 12px; font-family:var(--mono); font-size:11px; line-height:1.45; }
+.log-line { padding:4px 6px; border-bottom:1px solid var(--border-input); white-space:pre-wrap; word-break:break-word; color:var(--text-primary); }
+.log-line.log-error { color:var(--red); background:var(--red-light); }
+.log-line.log-warn { color:#B7791F; }
+.log-line.log-info { color:var(--text-secondary); }
+.log-ts { font-size:10px; opacity:0.6; margin-right:6px; font-weight:700; }
+
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     HEADER
+══════════════════════════════════════════ -->
+<header class="app-header">
+  <div class="header-left">
+    <div class="header-logo">ARS <span>Agenda de Revisão Espaçada</span></div>
+  </div>
+  <nav class="header-nav">
+    <button class="btn-nav-tab active" onclick="showScreen('agenda')">📅 Hoje</button>
+    <button class="btn-nav-tab" onclick="showScreen('calendar')">🗓️ Calendário</button>
+  </nav>
+  <div class="header-right">
+    <button class="btn-nav-tab btn-nav-icon" onclick="toggleLogPanel()" title="Logs">🐞</button>
+    <button class="btn-sync" id="btn-sync" onclick="syncDocs()">
+      <span class="sync-icon">🔄</span>
+      <span class="sync-label">Sincronizar</span>
+    </button>
+    <button class="btn-nav-tab btn-nav-icon" onclick="showScreen('setup')" title="Configurações">⚙️</button>
+  </div>
+</header>
+
+<!-- ══════════════════════════════════════════
+     TELA 1 — AGENDA DO DIA
+══════════════════════════════════════════ -->
+<div id="screen-agenda" class="screen active">
+  <div class="screen-body">
+    <div class="agenda-hero">
+      <div class="agenda-date-block">
+        <div class="agenda-date-label">Agenda de hoje</div>
+        <div class="agenda-date-main" id="agenda-date-main"></div>
+        <div class="agenda-date-sub" id="agenda-date-sub"></div>
+      </div>
+      <div class="agenda-stats">
+        <div class="agenda-stat">
+          <div class="agenda-stat-n" id="stat-total">0</div>
+          <div class="agenda-stat-l">revisões</div>
+        </div>
+        <div class="agenda-stat">
+          <div class="agenda-stat-n" id="stat-disc">0</div>
+          <div class="agenda-stat-l">disciplinas</div>
+        </div>
+      </div>
+    </div>
+    <div id="agenda-content"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     TELA 2 — CALENDÁRIO
+══════════════════════════════════════════ -->
+<div id="screen-calendar" class="screen">
+  <div class="screen-body">
+    <div class="cal-wrap">
+      <div class="cal-card">
+        <div class="cal-header">
+          <button class="btn-cal-nav" onclick="calNavMonth(-1)">‹</button>
+          <div class="cal-month-label" id="cal-month-label"></div>
+          <button class="btn-cal-nav" onclick="calNavMonth(1)">›</button>
+        </div>
+        <div class="cal-weekdays">
+          <div class="cal-weekday">Dom</div>
+          <div class="cal-weekday">Seg</div>
+          <div class="cal-weekday">Ter</div>
+          <div class="cal-weekday">Qua</div>
+          <div class="cal-weekday">Qui</div>
+          <div class="cal-weekday">Sex</div>
+          <div class="cal-weekday">Sáb</div>
+        </div>
+        <div class="cal-grid" id="cal-grid"></div>
+      </div>
+      <div class="cal-sidebar">
+        <div class="cal-sidebar-title" id="cal-sidebar-title">Selecione um dia</div>
+        <div class="cal-sidebar-sub" id="cal-sidebar-sub"></div>
+        <div id="cal-sidebar-status"></div>
+        <div class="cal-sidebar-items" id="cal-sidebar-items">
+          <div class="cal-sidebar-empty">Clique em um dia para ver os detalhes</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     TELA 3 — SETUP
+══════════════════════════════════════════ -->
+<div id="screen-setup" class="screen">
+  <div class="screen-body">
+
+    <!-- Card: Service Account -->
+    <div class="setup-card">
+      <div class="setup-section-title">🔑 Autenticação Google</div>
+      <div class="setup-section-sub">
+        Faça upload do arquivo JSON da sua Service Account para autenticar com o Google.
+      </div>
+
+      <!-- Estado: não configurado -->
+      <div id="sa-empty" style="display:none;">
+        <label class="sa-upload-btn" for="sa-file-input">
+          <span class="sa-upload-icon">📂</span>
+          <span class="sa-upload-label">Selecionar arquivo JSON</span>
+          <span class="sa-upload-hint">Clique para abrir o explorador de arquivos</span>
+        </label>
+        <input type="file" id="sa-file-input" accept=".json,application/json"
+               style="display:none" onchange="handleSaUpload(event)">
+      </div>
+
+      <!-- Estado: configurado -->
+      <div id="sa-connected" style="display:none;">
+        <div class="sa-connected-card">
+          <div class="sa-connected-icon">✅</div>
+          <div class="sa-connected-info">
+            <div class="sa-connected-email" id="sa-email"></div>
+            <div class="sa-connected-project" id="sa-project"></div>
+          </div>
+          <label class="sa-change-btn" for="sa-file-input" title="Trocar arquivo">🔄</label>
+          <input type="file" id="sa-file-input" accept=".json,application/json"
+                 style="display:none" onchange="handleSaUpload(event)">
+        </div>
+      </div>
+
+      <div class="setup-guide">
+        <div class="setup-guide-title">📋 Como configurar (mesmo processo do CQS)</div>
+        <ol>
+          <li>Acesse <strong>console.cloud.google.com</strong></li>
+          <li>Crie ou selecione um projeto → APIs & Services → Enable APIs</li>
+          <li>Habilite: <code>Google Docs API</code>, <code>Google Drive API</code> e <code>Google Sheets API</code></li>
+          <li>Crie uma Service Account → gere uma chave JSON → faça upload acima</li>
+          <li>Copie o e-mail da Service Account (ex: <code>nome@projeto.iam.gserviceaccount.com</code>)</li>
+          <li>Em cada Google Doc: compartilhe com esse e-mail como <strong>Comentarista</strong></li>
+          <li>Na planilha de configurações: compartilhe com esse e-mail como <strong>Editor</strong></li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- Card: Disciplinas -->
+    <div class="setup-card">
+      <div class="setup-section-title">📚 Disciplinas</div>
+      <div class="setup-section-sub">
+        Cadastre cada disciplina com o nome completo, a sigla (código) e o ID do Google Doc.<br>
+        O ID fica na URL: <code style="font-family:var(--mono);font-size:12px;background:var(--bg-input);padding:2px 6px;border-radius:4px;">docs.google.com/document/d/<strong>[ID AQUI]</strong>/edit</code>
+      </div>
+      <div class="disc-list" id="disc-list"></div>
+      <button class="btn-add-disc" onclick="openAddDisc()">
+        <span>＋</span> Adicionar disciplina
+      </button>
+      <button class="btn-save-setup" onclick="saveSetup()">💾 Salvar configurações</button>
+
+      <!-- Sync com Google Sheets -->
+      <div class="sheets-sync-section">
+        <div class="sheets-sync-title">☁️ Sincronizar com Google Sheets</div>
+        <div class="sheets-sync-sub">
+          Mantenha as disciplinas espelhadas em uma planilha Google Sheets.
+          A aba <code>disciplinas</code> deve ter cabeçalho: Nome | Sigla | DocID.
+        </div>
+        <div class="sheets-sync-row">
+          <input type="text" class="setup-input" id="sheets-id-input"
+            placeholder="ID da planilha (da URL do Sheets)"
+            style="flex:1;margin:0;"
+            value="">
+          <button class="btn-sheets-sync" onclick="syncSheets()" id="btn-sheets-sync">
+            <span class="sheets-sync-icon">☁️</span>
+            <span>Sincronizar</span>
+          </button>
+        </div>
+        <div id="sheets-sync-status" class="sheets-sync-status" style="display:none;"></div>
+      </div>
+    </div>
+
+    <!-- Card: Cache -->
+    <div class="setup-card">
+      <div class="setup-section-title">📦 Cache de Conteúdo</div>
+      <div class="setup-section-sub">
+        O conteúdo das abas é armazenado localmente no navegador (IndexedDB) para abertura instantânea no viewer.
+        Sincronizar atualiza apenas as abas que tiveram alterações desde o último sync.
+      </div>
+      <div id="cache-stats-loading" style="color:var(--text-secondary);font-size:13px;padding:10px 0;">Calculando...</div>
+      <div id="cache-stats" style="display:none;">
+        <div class="cache-stat-grid" id="cache-stat-grid"></div>
+        <div style="margin-top:16px;">
+          <div class="setup-label" style="margin-top:0;">Abas em cache</div>
+          <div class="cache-tab-list" id="cache-tab-list"></div>
+        </div>
+        <button class="btn-cache-clear" onclick="clearCache()">🗑️ Limpar cache completo</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     MODAL — ADICIONAR DISCIPLINA
+══════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-add-disc">
+  <div class="modal-box">
+    <div class="modal-title">Adicionar disciplina</div>
+    <div class="modal-sub">Informe o nome, a sigla e o ID do Google Doc.</div>
+    <label class="setup-label">Nome da disciplina</label>
+    <input type="text" class="setup-input" id="new-disc-name" placeholder="Ex: Direito Tributário">
+    <div class="modal-row" style="margin-top:14px;">
+      <div>
+        <label class="setup-label" style="margin-top:0;">Sigla (código)</label>
+        <input type="text" class="setup-input" id="new-disc-code" placeholder="Ex: DTRIB" style="text-transform:uppercase;">
+      </div>
+      <div>
+        <label class="setup-label" style="margin-top:0;">ID do Google Doc</label>
+        <input type="text" class="setup-input" id="new-disc-id" placeholder="1BxiMVs0XRA5n...">
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-modal-ok" onclick="confirmAddDisc()">Adicionar</button>
+      <button class="btn-modal-cancel" onclick="closeModal('modal-add-disc')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     MODAL — VIEWER DE CONTEÚDO
+══════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-viewer">
+  <div class="modal-box" id="viewer-modal-box">
+    <div class="viewer-header">
+      <div class="viewer-header-top">
+        <div>
+          <div class="viewer-disc-badge" id="viewer-disc-badge"></div>
+          <div class="viewer-title" id="viewer-title"></div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;flex-shrink:0;">
+          <button class="btn-viewer-expand" id="btn-viewer-expand" onclick="toggleViewerExpand()" title="Expandir / Tela cheia">⛶</button>
+          <button class="btn-viewer-close" onclick="closeViewer()">✕</button>
+        </div>
+      </div>
+      <div class="viewer-meta" id="viewer-meta"></div>
+    </div>
+    <div class="viewer-body" id="viewer-body">
+      <div class="viewer-loading">
+        <span class="viewer-loading-icon">⏳</span>
+        <div>Carregando conteúdo...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     FAB DE TEMA
+══════════════════════════════════════════ -->
+<div id="theme-fab">
+  <button id="theme-fab-btn" onclick="toggleThemeFab()">🎨</button>
+  <div id="theme-fab-menu">
+    <button class="theme-opt" onclick="setTheme('default')">
+      <span class="theme-dot theme-dot-default"></span> Padrão
+    </button>
+    <button class="theme-opt" onclick="setTheme('dark')">
+      <span class="theme-dot theme-dot-dark"></span> Noturno
+    </button>
+    <button class="theme-opt" onclick="setTheme('sepia')">
+      <span class="theme-dot theme-dot-sepia"></span> Sépia
+    </button>
+  </div>
+</div>
+
+<div id="log-panel" class="log-panel">
+  <div class="log-panel-header">
+    <div class="log-panel-title">📋 Logs (<span id="log-count">0</span>)</div>
+    <div class="log-panel-actions">
+      <button onclick="copyAllLogs()" id="btn-copy-logs">📋 Copiar tudo</button>
+      <button onclick="clearLogs()">🗑️ Limpar</button>
+      <button onclick="toggleLogPanel()">✕</button>
+    </div>
+  </div>
+  <div class="log-panel-body" id="log-panel-body"></div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+/* ══════════════════════════════════════════════
+   LOG PANEL — Buffer + interceptors
+══════════════════════════════════════════════ */
+window.__ARS_LOGS = [];
+const MAX_LOGS = 500;
+function pushLog(level, args) {
+  const ts = new Date().toISOString();
+  const parts = [];
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    if (arg instanceof Error) {
+      parts.push(arg.message + '\n' + arg.stack);
+    } else if (typeof arg === 'object' && arg !== null) {
+      try { parts.push(JSON.stringify(arg, null, 2)); } catch (e) { parts.push(String(arg)); }
+    } else {
+      parts.push(String(arg));
+    }
+  }
+  const msg = parts.join(' ');
+  window.__ARS_LOGS.push({ ts, level, msg });
+  if (window.__ARS_LOGS.length > MAX_LOGS) window.__ARS_LOGS.shift();
+  const panel = document.getElementById('log-panel');
+  if (panel && panel.classList.contains('open')) renderLogPanel();
+}
+const _origLog = console.log.bind(console);
+const _origInfo = console.info.bind(console);
+const _origWarn = console.warn.bind(console);
+const _origError = console.error.bind(console);
+console.log = function() { pushLog('info', arguments); _origLog.apply(console, arguments); };
+console.info = function() { pushLog('info', arguments); _origInfo.apply(console, arguments); };
+console.warn = function() { pushLog('warn', arguments); _origWarn.apply(console, arguments); };
+console.error = function() { pushLog('error', arguments); _origError.apply(console, arguments); };
+window.addEventListener('error', e => pushLog('error', ['[GLOBAL ERROR]', e.message, 'em', (e.filename||'?') + ':' + e.lineno + ':' + e.colno, e.error?.stack || '']));
+window.addEventListener('unhandledrejection', e => pushLog('error', ['[UNHANDLED REJECTION]', e.reason?.message || String(e.reason), e.reason?.stack || '']));
+const _origFetch = window.fetch.bind(window);
+window.fetch = async function(input, init) {
+  let url = typeof input === 'string' ? input : (input?.url || '?');
+  url = url.replace(/([?&])(access_token|key|assertion|client_secret)=[^&]+/gi, '$1$2=***REDACTED***').replace(/private_key[^&]*/gi, 'private_key=***REDACTED***');
+  const method = (init?.method || 'GET').toUpperCase();
+  const t0 = performance.now();
+  try {
+    const resp = await _origFetch(input, init);
+    const dt = Math.round(performance.now() - t0);
+    pushLog('info', ['[FETCH]', method, resp.status, dt+'ms', url]);
+    if (!resp.ok) {
+      try {
+        const clone = resp.clone();
+        const txt = await clone.text();
+        pushLog('error', ['[FETCH ERROR BODY]', method, url, txt.substring(0, 300)]);
+      } catch (e) {}
+    }
+    return resp;
+  } catch (err) {
+    pushLog('error', ['[FETCH EXCEPTION]', method, url, err.message]);
+    throw err;
+  }
+};
+/* ══════════════════════════════════════════════
+   CONSTANTES
+══════════════════════════════════════════════ */
+const REVISION_INTERVALS = [1,7,21,60,120,240,360,480,600,720];
+
+// Labels legíveis para cada número de revisão
+const REVISION_LABELS = {
+  1: '24 HORAS',
+  2: '7 DIAS',
+  3: '21 DIAS',
+  4: '2 MESES',
+  5: '4 MESES',
+  6: '8 MESES',
+  7: '1 ANO',
+  8: '16 MESES',
+  9: '20 MESES',
+  10: '2 ANOS'
+};
+
+// Labels curtos para o badge compacto dentro do card
+const REVISION_LABELS_SHORT = {
+  1: '24H',
+  2: '7D',
+  3: '21D',
+  4: '2M',
+  5: '4M',
+  6: '8M',
+  7: '1A',
+  8: '16M',
+  9: '20M',
+  10: '2A'
+};
+
+const R_COLORS = [
+  null,
+  {c:'var(--r1-color)',bg:'var(--r1-bg)'},
+  {c:'var(--r2-color)',bg:'var(--r2-bg)'},
+  {c:'var(--r3-color)',bg:'var(--r3-bg)'},
+  {c:'var(--r4-color)',bg:'var(--r4-bg)'},
+  {c:'var(--r5-color)',bg:'var(--r5-bg)'},
+  {c:'var(--r6-color)',bg:'var(--r6-bg)'},
+  {c:'var(--r7-color)',bg:'var(--r7-bg)'},
+  {c:'var(--r8-color)',bg:'var(--r8-bg)'},
+  {c:'var(--r9-color)',bg:'var(--r9-bg)'},
+  {c:'var(--r10-color)',bg:'var(--r10-bg)'}
+];
+
+/* ══════════════════════════════════════════════
+   INSTRUMENTO POR REVISÃO
+   R1 → ERR + SR30
+   MAPEAMENTO (qualquer R) → TODO O CONTEÚDO
+   demais → SR30
+══════════════════════════════════════════════ */
+function getInstrument(rNum, title) {
+  if (/mapeamento/i.test(title)) return 'TODO O CONTEÚDO';
+  if (rNum === 1) return 'ERR + SR30';
+  return 'SR30';
+}
+
+/* ══════════════════════════════════════════════
+   CÓDIGO DA DISCIPLINA
+   Busca o code pelo discName em STATE.disciplines
+   Fallback: retorna o nome se code não existir
+══════════════════════════════════════════════ */
+function getDiscCode(discName) {
+  const disc = STATE.disciplines.find(d => d.name === discName);
+  if (disc && disc.code) return disc.code.toUpperCase();
+  // Fallback: usa as primeiras letras de cada palavra, max 5 chars
+  return discName.split(/\s+/).map(w => w[0]).join('').toUpperCase().slice(0,5);
+}
+
+/* ══════════════════════════════════════════════
+   TRUNCAR TÍTULO — remove info de páginas
+   Ex: "AULA 09 – PARTE 03 – PG. 37 ATÉ 47"  → "AULA 09 – PARTE 03"
+   Ex: "AULA 14"                               → "AULA 14"
+   Aplicado apenas na exibição; storage mantém o original.
+══════════════════════════════════════════════ */
+function truncateTitle(title) {
+  return title
+    .replace(/\s*[-–—]\s*(PÁG\.?|PAG\.?|PG\.?|ATÉ\s+PG\.?|ATÉ\s+PAG\.?|ATÉ\s+PÁG\.?|ATÉ\s+A\s+PG\.?).*$/i, '')
+    .replace(/\s*[-–—]\s*ATÉ\s+PG\.?\s*\d+.*$/i, '')
+    .trim();
+}
+
+/* ══════════════════════════════════════════════
+   ESTADO
+══════════════════════════════════════════════ */
+let STATE = {
+  disciplines: [],   // [{name, code, docId}]
+  saJson: '',
+  sheetsId: '',      // ID do Google Sheets de configurações
+  items: [],         // [{discName, tabName, title, dateStr, dateObj, lineIndex}]
+  accessToken: null,
+  tokenExpiry: 0,
+  calYear: 0,
+  calMonth: 0,
+  calSelectedDate: null
+};
+
+/* ══════════════════════════════════════════════
+   INDEXEDDB — CACHE DE ABAS
+   Armazena o JSON estruturado de cada aba para
+   evitar re-download no viewer. Chave:
+   "docId::tabName" → {nodes, revisionId, savedAt}
+   Sync incremental: só baixa se revisionId mudou.
+══════════════════════════════════════════════ */
+const IDB_NAME    = 'ARS_Cache';
+const IDB_VERSION = 1;
+const IDB_STORE   = 'tabs';
+
+/* ── MOD 1: Singleton IDB ── */
+let _dbPromise = null;
+
+function openIDB() {
+  if (_dbPromise) return _dbPromise;
+  _dbPromise = new Promise((resolve, reject) => {
+    const req = indexedDB.open(IDB_NAME, IDB_VERSION);
+    req.onupgradeneeded = e => {
+      e.target.result.createObjectStore(IDB_STORE, { keyPath: 'key' });
+    };
+    req.onsuccess = e => {
+      const db = e.target.result;
+      db.onversionchange = () => { db.close(); _dbPromise = null; };
+      resolve(db);
+    };
+    req.onerror   = e => reject(e.target.error);
+  });
+  return _dbPromise;
+}
+/* ── END MOD 1 ── */
+
+async function cacheGet(key) {
+  try {
+    const db = await openIDB();
+    return new Promise((resolve, reject) => {
+      const tx  = db.transaction(IDB_STORE, 'readonly');
+      const req = tx.objectStore(IDB_STORE).get(key);
+      req.onsuccess = e => resolve(e.target.result || null);
+      req.onerror   = e => reject(e.target.error);
+    });
+  } catch(e) { return null; }
+}
+
+async function cacheSet(key, value) {
+  try {
+    const db = await openIDB();
+    return new Promise((resolve, reject) => {
+      const tx  = db.transaction(IDB_STORE, 'readwrite');
+      const req = tx.objectStore(IDB_STORE).put({ key, ...value });
+      req.onsuccess = () => resolve();
+      req.onerror   = e => reject(e.target.error);
+    });
+  } catch(e) { /* silently fail */ }
+}
+
+async function cacheDelete(key) {
+  try {
+    const db = await openIDB();
+    return new Promise((resolve) => {
+      const tx = db.transaction(IDB_STORE, 'readwrite');
+      tx.objectStore(IDB_STORE).delete(key);
+      tx.oncomplete = () => resolve();
+    });
+  } catch(e) {}
+}
+
+async function cacheGetAllKeys() {
+  try {
+    const db = await openIDB();
+    return new Promise((resolve) => {
+      const tx  = db.transaction(IDB_STORE, 'readonly');
+      const req = tx.objectStore(IDB_STORE).getAllKeys();
+      req.onsuccess = e => resolve(e.target.result || []);
+      req.onerror   = () => resolve([]);
+    });
+  } catch(e) { return []; }
+}
+
+/* ── MOD 2: IDB batch functions ── */
+async function cacheGetMany(keys) {
+  if (!keys.length) return [];
+  try {
+    const db = await openIDB();
+    return new Promise((resolve) => {
+      const tx = db.transaction(IDB_STORE, 'readonly');
+      const store = tx.objectStore(IDB_STORE);
+      const results = new Array(keys.length).fill(null);
+      let pending = keys.length;
+      keys.forEach((k, i) => {
+        const req = store.get(k);
+        req.onsuccess = e => { results[i] = e.target.result || null; pending--; if (pending === 0) resolve(results); };
+        req.onerror = () => { pending--; if (pending === 0) resolve(results); };
+      });
+    });
+  } catch(e) { return keys.map(() => null); }
+}
+
+async function cacheSetMany(entries) {
+  if (!entries.length) return;
+  try {
+    const db = await openIDB();
+    return new Promise((resolve) => {
+      const tx = db.transaction(IDB_STORE, 'readwrite');
+      const store = tx.objectStore(IDB_STORE);
+      for (const entry of entries) store.put(entry);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => resolve();
+    });
+  } catch(e) {}
+}
+
+async function cacheGetAllEntries(prefix) {
+  try {
+    const db = await openIDB();
+    return new Promise((resolve) => {
+      const tx = db.transaction(IDB_STORE, 'readonly');
+      const store = tx.objectStore(IDB_STORE);
+      const range = prefix ? IDBKeyRange.bound(prefix, prefix + '\uffff') : null;
+      const req = store.openCursor(range);
+      const entries = [];
+      req.onsuccess = e => {
+        const cursor = e.target.result;
+        if (cursor) { entries.push(cursor.value); cursor.continue(); }
+        else resolve(entries);
+      };
+      req.onerror = () => resolve([]);
+    });
+  } catch(e) { return []; }
+}
+/* ── END MOD 2 ── */
+
+/* ══════════════════════════════════════════════
+   PERSISTÊNCIA (localStorage — metadados leves)
+══════════════════════════════════════════════ */
+function saveState() {
+  localStorage.setItem('ars_disciplines', JSON.stringify(STATE.disciplines));
+  localStorage.setItem('ars_sajson', STATE.saJson);
+  localStorage.setItem('ars_sheetsid', STATE.sheetsId);
+  localStorage.setItem('ars_items', JSON.stringify(STATE.items));
+}
+
+function loadState() {
+  try {
+    STATE.disciplines = JSON.parse(localStorage.getItem('ars_disciplines') || '[]');
+    STATE.saJson      = localStorage.getItem('ars_sajson')   || '';
+    STATE.sheetsId    = localStorage.getItem('ars_sheetsid') || '';
+    STATE.items       = JSON.parse(localStorage.getItem('ars_items') || '[]');
+    STATE.items.forEach(it => {
+      if (typeof it.dateObj === 'string') it.dateObj = new Date(it.dateObj);
+    });
+  } catch(e) { console.warn('loadState error', e); }
+}
+
+/* ══════════════════════════════════════════════
+   UTILITÁRIOS DE DATA
+══════════════════════════════════════════════ */
+function today() {
+  const d = new Date();
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+}
+
+function dateKey(d) {
+  return d.getFullYear() + '-' +
+    String(d.getMonth()+1).padStart(2,'0') + '-' +
+    String(d.getDate()).padStart(2,'0');
+}
+
+function addDays(d, n) {
+  const r = new Date(d);
+  r.setDate(r.getDate() + n);
+  return r;
+}
+
+function parseDateBR(str) {
+  const m = str.match(/(\d{2})\/(\d{2})\/(\d{4})/);
+  if (!m) return null;
+  return new Date(parseInt(m[3]), parseInt(m[2])-1, parseInt(m[1]));
+}
+
+function fmtDateBR(d) {
+  return String(d.getDate()).padStart(2,'0') + '/' +
+         String(d.getMonth()+1).padStart(2,'0') + '/' +
+         d.getFullYear();
+}
+
+function fmtDateLong(d) {
+  const days   = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
+  const months = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  return days[d.getDay()] + ', ' + d.getDate() + ' de ' + months[d.getMonth()] + ' de ' + d.getFullYear();
+}
+
+function fmtDateShort(d) {
+  return String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0');
+}
+
+/* ══════════════════════════════════════════════
+   PARSING DO GOOGLE DOC
+   extractTextFromTab — usado apenas para parsing
+   de datas (sync). Trabalha com texto plano.
+   extractParagraphsFromTab — usado pelo viewer.
+   Retorna array de objetos {text, styleType,
+   bold, italic, underline, indent, bullet} por
+   parágrafo, preservando a estrutura do JSON.
+══════════════════════════════════════════════ */
+
+// Extrai texto plano — usado SOMENTE pelo sync/parsing
+function extractTextFromTab(tab) {
+  let text = '';
+  try {
+    const content = tab.documentTab?.body?.content || [];
+    for (const el of content) {
+      if (el.paragraph) {
+        for (const pe of el.paragraph.elements || []) {
+          if (pe.textRun) text += pe.textRun.content;
+        }
+      }
+      if (el.table) {
+        for (const row of el.table.tableRows || []) {
+          for (const cell of row.tableCells || []) {
+            for (const cel of cell.content || []) {
+              if (cel.paragraph) {
+                for (const pe of cel.paragraph.elements || []) {
+                  if (pe.textRun) text += pe.textRun.content;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  } catch(e) {}
+  return text;
+}
+
+// Extrai parágrafos/tabelas estruturados — usado pelo VIEWER
+// Retorna array misto de parágrafos e objetos-tabela.
+function extractParagraphsFromTab(tab) {
+  const nodes = [];
+  try {
+    const content = tab.documentTab?.body?.content || [];
+    for (const el of content) {
+      if (el.paragraph) {
+        nodes.push(parseParagraph(el.paragraph));
+      }
+      if (el.table) {
+        // Tabela preservada como objeto estruturado {type:'table', rows}
+        nodes.push(parseTable(el.table));
+      }
+    }
+  } catch(e) { console.warn('extractParagraphsFromTab error', e); }
+  return nodes;
+}
+
+// Converte uma table do GDocs numa estrutura renderizável
+// {type:'table', rows: [[{paras:[]}, ...], ...], plainText:''}
+function parseTable(table) {
+  const rows = [];
+  let plainText = '';
+  for (const row of table.tableRows || []) {
+    const cells = [];
+    for (const cell of row.tableCells || []) {
+      const paras = [];
+      for (const cel of cell.content || []) {
+        if (cel.paragraph) {
+          const p = parseParagraph(cel.paragraph, true);
+          paras.push(p);
+          plainText += p.plainText + ' ';
+        }
+      }
+      cells.push(paras);
+    }
+    rows.push(cells);
+  }
+  return { type: 'table', rows, plainText };
+}
+
+// Converte um parágrafo do GDocs em estrutura interna rica.
+// spans = [{text, bold, italic, underline, strike, color, bgColor, fontSize}]
+function parseParagraph(paragraph, inTable = false) {
+  const pStyle     = paragraph.paragraphStyle || {};
+  const namedStyle = pStyle.namedStyleType || 'NORMAL_TEXT';
+  const isGDocsHeading = namedStyle.startsWith('HEADING_');
+
+  // Recuo: indentStart (parágrafo inteiro) + indentFirstLine (primeira linha)
+  // Google Docs armazena em pontos (pt). Convertemos para px: 1pt ≈ 1.333px
+  const indentStartPt     = pStyle.indentStart?.magnitude     || 0;
+  const indentFirstLinePt = pStyle.indentFirstLine?.magnitude || 0;
+  // Usa o maior dos dois como proxy de indentação visual
+  const indentPt = Math.max(indentStartPt, indentFirstLinePt);
+
+  // Alinhamento
+  const align = pStyle.alignment || 'START'; // START, CENTER, END, JUSTIFIED
+
+  // Espaçamento após parágrafo (pt → px)
+  const spaceAfterPt = pStyle.spaceBelow?.magnitude || 0;
+
+  // Bullet
+  const hasBullet = !!paragraph.bullet;
+  const nestLevel = paragraph.bullet?.nestingLevel ?? 0;
+
+  // Spans (runs) com formatação completa
+  const spans = [];
+  let plainText = '';
+
+  for (const pe of paragraph.elements || []) {
+    if (pe.textRun) {
+      const raw   = pe.textRun.content || '';
+      const style = pe.textRun.textStyle || {};
+      const text  = raw.replace(/\n$/, '');
+      plainText  += text;
+      if (!text) continue;
+
+      // Tamanho de fonte: magnitude em pontos
+      const fontSizePt = style.fontSize?.magnitude || null;
+
+      spans.push({
+        text,
+        bold:      !!style.bold,
+        italic:    !!style.italic,
+        underline: !!style.underline,
+        strike:    !!style.strikethrough,
+        color:     style.foregroundColor?.color?.rgbColor   || null,
+        bgColor:   style.backgroundColor?.color?.rgbColor   || null,
+        fontSizePt,
+      });
+    }
+    // Notas de rodapé e outros elementos inline — ignora o texto, mas não quebra
+    // (footnoteReference, person, etc.)
+  }
+
+  return {
+    type:         'paragraph',
+    plainText,
+    namedStyle,
+    isHeading:    isGDocsHeading,
+    indentPt,
+    align,
+    spaceAfterPt,
+    hasBullet,
+    nestLevel,
+    inTable,
+    spans,
+  };
+}
+
+// Converte um span em HTML com formatação completa
+function spansToHtml(spans) {
+  return spans.map(s => {
+    let html = escHtml(s.text);
+    if (s.bold)      html = `<strong>${html}</strong>`;
+    if (s.italic)    html = `<em>${html}</em>`;
+    if (s.underline) html = `<u>${html}</u>`;
+    if (s.strike)    html = `<s>${html}</s>`;
+
+    const styles = [];
+    if (s.color) {
+      const {red=0,green=0,blue=0} = s.color;
+      styles.push(`color:rgb(${Math.round(red*255)},${Math.round(green*255)},${Math.round(blue*255)})`);
+    }
+    if (s.bgColor) {
+      const {red=0,green=0,blue=0} = s.bgColor;
+      // Ignora backgrounds muito próximos de branco (artefato do GDocs)
+      const brightness = (red + green + blue) / 3;
+      if (brightness < 0.97) {
+        styles.push(`background:rgb(${Math.round(red*255)},${Math.round(green*255)},${Math.round(blue*255)});border-radius:2px;padding:0 2px`);
+      }
+    }
+    if (s.fontSizePt) {
+      // Base viewer = 14px ≈ 10.5pt. Escala proporcionalmente.
+      const px = Math.round(s.fontSizePt * 1.333);
+      if (px !== 19) styles.push(`font-size:${px}px`); // 14pt (padrão) → skip
+    }
+    if (styles.length) html = `<span style="${styles.join(';')}">${html}</span>`;
+    return html;
+  }).join('');
+}
+
+// Renderiza um nó (parágrafo ou tabela) em HTML
+function nodeToHtml(node) {
+  if (node.type === 'table') return tableToHtml(node);
+  return paragraphToHtml(node);
+}
+
+// Renderiza uma tabela do GDocs como <tr> HTML
+function tableToHtml(tableNode) {
+  if (!tableNode.rows || !tableNode.rows.length) return '';
+  const isFirstRowHeader = tableNode.rows[0].every(cell =>
+    cell.some(p => p.spans.some(s => s.bold))
+  );
+  let html = '<div class="vc-table-wrap"><table class="vc-table">';
+  tableNode.rows.forEach((row, ri) => {
+    const tag = (ri === 0 && isFirstRowHeader) ? 'th' : 'td';
+    html += '<tr>';
+    row.forEach(cellParas => {
+      const cellHtml = cellParas
+        .filter(p => p.plainText.trim())
+        .map(p => {
+          const inner = spansToHtml(p.spans);
+          if (p.hasBullet) return `<div class="vc-bullet-cell">• ${inner}</div>`;
+          return `<div>${inner}</div>`;
+        }).join('');
+      html += `<${tag}>${cellHtml}</${tag}>`;
+    });
+    html += '</tr>';
+  });
+  html += '</table></div>';
+  return html;
+}
+
+// Renderiza um único parágrafo em HTML
+function paragraphToHtml(p) {
+  if (!p.plainText.trim()) return '<div class="vc-spacer"></div>';
+
+  const inner = spansToHtml(p.spans);
+
+  // Recuo: 1pt = 1.333px. Limit máximo visual de 120px.
+  const indentPx = Math.min(Math.round(p.indentPt * 1.333), 120);
+  const indentStyle = indentPx > 0 ? `padding-left:${indentPx}px;` : '';
+
+  // Alinhamento
+  const alignMap = { CENTER: 'center', END: 'right', JUSTIFIED: 'justify' };
+  const alignStyle = alignMap[p.align] ? `text-align:${alignMap[p.align]};` : '';
+
+  // Espaçamento após parágrafo
+  const marginStyle = p.spaceAfterPt > 0 ? `margin-bottom:${Math.round(p.spaceAfterPt*1.333)}px;` : '';
+
+  const styleAttr = (indentStyle || alignStyle || marginStyle)
+    ? ` style="${indentStyle}${alignStyle}${marginStyle}"`
+    : '';
+
+  if (p.isHeading) {
+    // Mapeia HEADING_1..6 para tamanhos decrescentes
+    const levelMap = {HEADING_1:'vc-h1',HEADING_2:'vc-h2',HEADING_3:'vc-h3',
+                      HEADING_4:'vc-h4',HEADING_5:'vc-h5',HEADING_6:'vc-h6'};
+    const cls = levelMap[p.namedStyle] || 'vc-h3';
+    return `<div class="vc-heading ${cls}"${styleAttr}>${inner}</div>`;
+  }
+
+  if (/\d{2}\/\d{2}\/\d{4}/.test(p.plainText)) {
+    return `<div class="vc-date-line">${inner}</div>`;
+  }
+
+  if (p.hasBullet) {
+    const nestPx = p.nestLevel * 18;
+    const totalPx = 18 + nestPx + indentPx;
+    return `<div class="vc-bullet" style="padding-left:${totalPx}px;${alignStyle}${marginStyle}">${inner}</div>`;
+  }
+
+  return `<div class="vc-line"${styleAttr}>${inner}</div>`;
+}
+
+// Renderiza um array de nós (parágrafos + tabelas) em HTML
+function paragraphsToHtml(nodes) {
+  return nodes.map(n => nodeToHtml(n)).join('');
+}
+
+function parseItemsFromText(text, discName, tabName) {
+  const items = [];
+  const lines = text.split('\n');
+  const dateRe = /(\d{2}\/\d{2}\/\d{4})/;
+
+  lines.forEach((line, lineIndex) => {
+    const m = line.match(dateRe);
+    if (!m) return;
+
+    const dateObj = parseDateBR(m[1]);
+    if (!dateObj) return;
+
+    let title = line
+      .replace(/\*\*/g, '')
+      .replace(/\([^)]*\)/g, '')
+      .replace(/\[.*?\]/g, '')
+      .replace(m[1], '')
+      .replace(/–/g, '–')
+      .replace(/\s{2,}/g, ' ')
+      .trim()
+      .replace(/^[-–—\s]+/, '')
+      .replace(/[-–—\s]+$/, '')
+      .trim();
+
+    if (!title) title = tabName;
+
+    items.push({
+      discName,
+      tabName,
+      title,
+      dateStr: m[1],
+      dateObj,
+      lineIndex
+    });
+  });
+
+  return items;
+}
+
+/* ══════════════════════════════════════════════
+   GOOGLE DOCS API — TOKEN COM CACHE
+══════════════════════════════════════════════ */
+async function ensureToken() {
+  const now = Date.now();
+  // Reutiliza token se ainda válido por mais de 2 minutos
+  if (STATE.accessToken && STATE.tokenExpiry - now > 120000) {
+    return STATE.accessToken;
+  }
+  const token = await getAccessToken(STATE.saJson);
+  STATE.accessToken = token;
+  STATE.tokenExpiry = now + 3600000; // 1 hora
+  return token;
+}
+
+async function getAccessToken(saJsonStr) {
+  const sa = JSON.parse(saJsonStr);
+  const now = Math.floor(Date.now() / 1000);
+  const header  = { alg: 'RS256', typ: 'JWT' };
+  const payload = {
+    iss: sa.client_email,
+    scope: 'https://www.googleapis.com/auth/documents.readonly https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/spreadsheets',
+    aud: 'https://oauth2.googleapis.com/token',
+    exp: now + 3600,
+    iat: now
+  };
+
+  const b64 = obj => btoa(JSON.stringify(obj)).replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_');
+  const sigInput = b64(header) + '.' + b64(payload);
+
+  const pem = sa.private_key
+    .replace(/-----BEGIN PRIVATE KEY-----/, '')
+    .replace(/-----END PRIVATE KEY-----/, '')
+    .replace(/\n/g, '');
+  const keyData = Uint8Array.from(atob(pem), c => c.charCodeAt(0));
+  const cryptoKey = await crypto.subtle.importKey(
+    'pkcs8', keyData.buffer,
+    { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
+    false, ['sign']
+  );
+
+  const enc = new TextEncoder();
+  const sig = await crypto.subtle.sign('RSASSA-PKCS1-v1_5', cryptoKey, enc.encode(sigInput));
+  const b64sig = btoa(String.fromCharCode(...new Uint8Array(sig)))
+    .replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_');
+
+  const jwt = sigInput + '.' + b64sig;
+
+  const resp = await fetch('https://oauth2.googleapis.com/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: `grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=${jwt}`
+  });
+  const data = await resp.json();
+  if (!data.access_token) throw new Error(data.error_description || 'Falha ao obter token');
+  return data.access_token;
+}
+
+async function fetchDocTabs(docId, token) {
+  const url = `https://docs.googleapis.com/v1/documents/${docId}?includeTabsContent=true`;
+  const resp = await fetch(url, { headers: { Authorization: 'Bearer ' + token } });
+  if (!resp.ok) throw new Error(`Erro ao buscar doc ${docId}: ${resp.status}`);
+  const data = await resp.json();
+  const tabs = [];
+  function collectTabs(tabArr) {
+    if (!tabArr) return;
+    for (const t of tabArr) {
+      tabs.push(t);
+      if (t.childTabs) collectTabs(t.childTabs);
+    }
+  }
+  collectTabs(data.tabs);
+  return tabs;
+}
+
+/* ══════════════════════════════════════════════
+   DOCX COMMENT EXTRACTION (por aba, via frontend export)
+══════════════════════════════════════════════ */
+
+function normalizeText(s) {
+  return s.replace(/\s+/g, '');
+}
+
+/**
+ * fetchDocxComments(docId, token)
+ * Baixa o DOCX de UMA aba específica via endpoint frontend.
+ * Suporta múltiplos commentRangeStart com o mesmo id (pilha).
+ * Retorna {status, commentsById, commentRanges, ordinalByRangeKey, tabPlainText}.
+ */
+async function fetchDocxComments(docId, token) {
+  const defaultEmpty = { status: 'failed', commentsById: {}, commentRanges: {}, ordinalByRangeKey: {}, tabPlainText: '' };
+  try {
+    const exportUrl = `https://www.googleapis.com/drive/v3/files/${docId}/export?mimeType=application/vnd.openxmlformats-officedocument.wordprocessingml.document`;
+    const resp = await fetch(exportUrl, { headers: { Authorization: 'Bearer ' + token } });
+    const buf = await resp.arrayBuffer();
+    const ct = resp.headers.get('content-type') || '';
+    if (!resp.ok || (!ct.includes('wordprocessingml') && !ct.includes('zip')) || buf.byteLength < 1000) {
+      console.warn('[ARS-COMMENTS] DOCX invalido: status=' + resp.status + ' size=' + buf.byteLength);
+      return defaultEmpty;
+    }
+    const zip = await JSZip.loadAsync(buf);
+    const commentsXml = await zip.file('word/comments.xml')?.async('string');
+    const commentsExtXml = await zip.file('word/commentsExtended.xml')?.async('string');
+    const documentXml = await zip.file('word/document.xml')?.async('string');
+    if (!documentXml) {
+      console.warn('[ARS-COMMENTS] DOCX sem document.xml');
+      return { ...defaultEmpty, status: 'no-comments' };
+    }
+    const parser = new DOMParser();
+    const commentsDoc = commentsXml ? parser.parseFromString(commentsXml, 'application/xml') : null;
+    if (commentsDoc && commentsDoc.querySelector('parsererror')) throw new Error('comments.xml parsererror');
+    const commentsExtDoc = commentsExtXml ? parser.parseFromString(commentsExtXml, 'application/xml') : null;
+    if (commentsExtDoc && commentsExtDoc.querySelector('parsererror')) { /* ignorar */ }
+    const documentDoc = parser.parseFromString(documentXml, 'application/xml');
+    if (documentDoc.querySelector('parsererror')) throw new Error('document.xml parsererror');
+    const W_NS = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+    const W15_NS = 'http://schemas.microsoft.com/office/word/2012/wordml';
+
+    // Parse commentsById
+    const commentsById = {};
+    if (commentsDoc) {
+      const commentNodes = commentsDoc.getElementsByTagNameNS(W_NS, 'comment');
+      for (let i = 0; i < commentNodes.length; i++) {
+        const cmt = commentNodes[i];
+        const id = cmt.getAttributeNS(W_NS, 'id');
+        const author = cmt.getAttributeNS(W_NS, 'author') || 'Anônimo';
+        const date = cmt.getAttributeNS(W_NS, 'date') || '';
+        let textParts = [];
+        const pNodes = cmt.getElementsByTagNameNS(W_NS, 'p');
+        for (let p = 0; p < pNodes.length; p++) {
+          const tNodes = pNodes[p].getElementsByTagNameNS(W_NS, 't');
+          for (let t = 0; t < tNodes.length; t++) {
+            textParts.push(tNodes[t].textContent || '');
+          }
+        }
+        const text = textParts.join('').trim();
+        commentsById[id] = { id, author, date, text, resolved: false };
+      }
+    }
+    // Detectar resolved via commentsExtended
+    if (commentsExtDoc) {
+      const extNodes = commentsExtDoc.getElementsByTagNameNS(W15_NS, 'commentEx');
+      for (let j = 0; j < extNodes.length; j++) {
+        const ext = extNodes[j];
+        if (ext.getAttributeNS(W15_NS, 'done') === '1') {
+          const paraId = ext.getAttributeNS(W15_NS, 'paraId');
+          if (paraId && commentsById[paraId]) commentsById[paraId].resolved = true;
+        }
+      }
+    }
+
+    // Percorrer document.xml com suporte a múltiplos ranges por comment id (pilha)
+    const commentRanges = {};
+    const ordinalByRangeKey = {};
+    let plainTextParts = [];
+    let currentPos = 0;
+    const openRanges = {};
+    const pendingRangeKeys = {};
+    let ordinalCounter = 0;
+
+    const processNode = (node) => {
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        if (node.localName === 'commentRangeStart' && node.namespaceURI === W_NS) {
+          const id = node.getAttributeNS(W_NS, 'id');
+          if (id) {
+            const rangeKey = id + ':' + ordinalCounter;
+            (openRanges[id] || (openRanges[id] = [])).push(currentPos);
+            (pendingRangeKeys[id] || (pendingRangeKeys[id] = [])).push(rangeKey);
+            ordinalByRangeKey[rangeKey] = ordinalCounter++;
+          }
+        }
+        if (node.localName === 'commentRangeEnd' && node.namespaceURI === W_NS) {
+          const id = node.getAttributeNS(W_NS, 'id');
+          if (id && openRanges[id] && openRanges[id].length > 0) {
+            const posStart = openRanges[id].pop();
+            const rangeKey = pendingRangeKeys[id].pop();
+            const endChar = currentPos;
+            if (endChar > posStart) {
+              const fullText = plainTextParts.join('');
+              commentRanges[rangeKey] = { commentId: id, startChar: posStart, endChar, quotedText: fullText.substring(posStart, endChar) };
+            }
+          }
+        }
+        if (node.localName === 't' && node.namespaceURI === W_NS) {
+          const text = node.textContent || '';
+          if (text) { plainTextParts.push(text); currentPos += text.length; }
+        }
+        for (let child = node.firstChild; child; child = child.nextSibling) processNode(child);
+        if (node.localName === 'p' && node.namespaceURI === W_NS) { plainTextParts.push('\n'); currentPos += 1; }
+      }
+    };
+    processNode(documentDoc.documentElement);
+    const tabPlainText = plainTextParts.join('');
+
+    // Filtrar ranges de comentários resolvidos
+    const filteredRanges = {};
+    for (const rangeKey of Object.keys(commentRanges)) {
+      const r = commentRanges[rangeKey];
+      if (!commentsById[r.commentId] || commentsById[r.commentId].resolved) continue;
+      filteredRanges[rangeKey] = r;
+    }
+    const total = Object.keys(commentsById).length;
+    const ranges = Object.keys(filteredRanges).length;
+    console.log('[ARS-COMMENTS] parse: total=' + total + ' ativos=' + Object.keys(commentsById).filter(id => !commentsById[id].resolved).length + ' ranges=' + ranges);
+    if (ranges === 0) {
+      return { status: 'no-comments', commentsById: {}, commentRanges: {}, ordinalByRangeKey: {}, tabPlainText };
+    }
+    return { status: 'ok', commentsById, commentRanges: filteredRanges, ordinalByRangeKey, tabPlainText };
+  } catch (err) {
+    console.error('[ARS-COMMENTS] fetchDocxComments error:', err);
+    return defaultEmpty;
+  }
+}
+
+/**
+ * assignRangesToTabs(docxResult, tabsData)
+ * Atribui cada commentRange do documento completo (docxResult) à aba correta,
+ * usando alinhamento do texto normalizado entre a exportação DOCX e a API Docs.
+ * Retorna array de mesmo comprimento que tabsData, com objetos {status, commentsById, commentRanges, ordinalByRangeKey}.
+ */
+function assignRangesToTabs(docxResult, tabsData) {
+  const defaultEmpty = { status: 'no-comments', commentsById: {}, commentRanges: {}, ordinalByRangeKey: {}, tabPlainText: '' };
+  if (docxResult.status !== 'ok') return tabsData.map(() => docxResult);
+
+  const fullPlainText = docxResult.tabPlainText || '';
+
+  // Normalize each tab's plainText (remove whitespace for matching)
+  const tabNormTexts = tabsData.map(td => {
+    let text = '';
+    for (const node of td.nodes) {
+      text += (node.plainText || '').replace(/\s+/g, '');
+    }
+    return text;
+  });
+
+  // Normalize full DOCX plainText + map normalized positions to raw positions
+  const fullNormChars = [];
+  const normToRaw = [];
+  for (let ci = 0; ci < fullPlainText.length; ci++) {
+    if (!/\s/.test(fullPlainText[ci])) {
+      normToRaw.push(ci);
+      fullNormChars.push(fullPlainText[ci]);
+    }
+  }
+  const fullNormText = fullNormChars.join('');
+
+  // Find each tab's boundaries in the full text
+  let searchPos = 0;
+  const tabRawRanges = tabsData.map((td, i) => {
+    const tnt = tabNormTexts[i];
+    if (!tnt) return { startRaw: 0, endRaw: 0 };
+    const normStart = fullNormText.indexOf(tnt, searchPos);
+    if (normStart < 0) {
+      const sampleAPI = tnt.slice(0, 80);
+      const sampleFull = fullNormText.slice(searchPos, searchPos + 120);
+      console.warn(`[ARS-COMMENTS] assignRanges: aba "${td.tabName}" não encontrada.
+  esperado(ini): "${sampleAPI}"
+  completo(pos): "${sampleFull}"`);
+      return { startRaw: 0, endRaw: 0 };
+    }
+    const normEnd = normStart + tnt.length;
+    searchPos = normStart + tnt.length;
+    const startRaw = normToRaw[normStart] ?? 0;
+    const endRaw = normEnd > 0 ? (normToRaw[normEnd - 1] ?? 0) + 1 : 0;
+    return { startRaw, endRaw };
+  });
+
+  // Assign each range to the tab whose boundaries contain it
+  const perTab = tabsData.map(() => ({ ranges: {}, ordinals: {} }));
+  for (const [rangeKey, range] of Object.entries(docxResult.commentRanges)) {
+    for (let ti = 0; ti < tabRawRanges.length; ti++) {
+      const tb = tabRawRanges[ti];
+      if (tb.endRaw <= tb.startRaw) continue;
+      if (range.startChar >= tb.startRaw && range.endChar <= tb.endRaw) {
+        perTab[ti].ranges[rangeKey] = range;
+        if (docxResult.ordinalByRangeKey) {
+          perTab[ti].ordinals[rangeKey] = docxResult.ordinalByRangeKey[rangeKey];
+        }
+        break;
+      }
+    }
+  }
+
+  // Fallback: if nothing assigned, give full docx to each tab
+  const totalAssigned = perTab.reduce((s, p) => s + Object.keys(p.ranges).length, 0);
+  if (totalAssigned === 0 && Object.keys(docxResult.commentRanges).length > 0) {
+    console.warn('[ARS-COMMENTS] assignRanges: falha no alinhamento — usando ranges completos para cada aba');
+    return tabsData.map(() => docxResult);
+  }
+
+  return tabsData.map((td, i) => {
+    const cnt = Object.keys(perTab[i].ranges).length;
+    console.log('[ARS-COMMENTS] assignTab: "' + td.tabName + '" ranges=' + cnt);
+    if (cnt === 0) return defaultEmpty;
+    return {
+      status: 'ok',
+      commentsById: docxResult.commentsById,
+      commentRanges: perTab[i].ranges,
+      ordinalByRangeKey: perTab[i].ordinals,
+      tabPlainText: ''
+    };
+  });
+}
+
+/**
+ * pMap(items, mapper, concurrency)
+ * Executa mapper(item) para todos os items com no máximo concurrency
+ * rodando simultaneamente. Retorna array de resultados na ordem original.
+ * Erros individuais são capturados e armazenados como {__error: err}.
+ */
+async function pMap(items, mapper, concurrency) {
+  const results = new Array(items.length);
+  let nextIndex = 0;
+  async function worker() {
+    while (nextIndex < items.length) {
+      const idx = nextIndex++;
+      try {
+        results[idx] = await mapper(items[idx]);
+      } catch (err) {
+        results[idx] = { __error: err };
+      }
+    }
+  }
+  const workers = [];
+  for (let i = 0; i < Math.min(concurrency, items.length); i++) {
+    workers.push(worker());
+  }
+  await Promise.all(workers);
+  return results;
+}
+
+
+
+/**
+ * mapTabRangesToNodes(nodes, tabDocx)
+ * Mapeia ranges (já filtrados para esta aba) para posições nos nodes.
+ * Usa cursor incremental para resolver duplicatas do mesmo texto.
+ * Retorna array de {id, author, date, text, quotedText, resolved, startNodeIdx, startCharInNode, endNodeIdx, endCharInNode}.
+ */
+function mapTabRangesToNodes(nodes, tabDocx) {
+  const out = [];
+  if (tabDocx.status !== 'ok') return out;
+
+  // Construir índice normalizado plano (sem whitespace, sem separadores)
+  const tabNormChars = [];
+  const tabNormToNodeIdx = [];
+  const tabNormToCharInNode = [];
+  for (let ni = 0; ni < nodes.length; ni++) {
+    const text = nodes[ni].plainText || '';
+    for (let ci = 0; ci < text.length; ci++) {
+      if (!/\s/.test(text[ci])) {
+        tabNormChars.push(text[ci]);
+        tabNormToNodeIdx.push(ni);
+        tabNormToCharInNode.push(ci);
+      }
+    }
+  }
+  const tabNormText = tabNormChars.join('');
+
+  // Ordenar rangeKeys por ordinal
+  const sortedKeys = Object.keys(tabDocx.commentRanges).sort(
+    (a, b) => (tabDocx.ordinalByRangeKey[a] ?? 0) - (tabDocx.ordinalByRangeKey[b] ?? 0)
+  );
+
+  let searchFrom = 0;
+  let mapeados = 0;
+  let orfaos = 0;
+
+  for (const rangeKey of sortedKeys) {
+    const range = tabDocx.commentRanges[rangeKey];
+    const cmt = tabDocx.commentsById[range.commentId];
+    if (!range || !cmt) continue;
+
+    const normSlice = normalizeText(range.quotedText);
+    if (!normSlice) continue;
+
+    let idx = tabNormText.indexOf(normSlice, searchFrom);
+    if (idx < 0) {
+      idx = tabNormText.indexOf(normSlice, 0);
+    }
+    if (idx < 0) { orfaos++; continue; }
+
+    const endIdx = idx + normSlice.length - 1;
+    const startNodeIdx = tabNormToNodeIdx[idx];
+    const startCharInNode = tabNormToCharInNode[idx];
+    const endNodeIdx = tabNormToNodeIdx[endIdx];
+    const endCharInNode = tabNormToCharInNode[endIdx] + 1;
+
+    out.push({
+      id: range.commentId,
+      author: cmt.author,
+      date: cmt.date,
+      text: cmt.text,
+      quotedText: range.quotedText,
+      resolved: false,
+      startNodeIdx,
+      startCharInNode,
+      endNodeIdx,
+      endCharInNode
+    });
+    mapeados++;
+    searchFrom = idx + 1;
+  }
+
+  console.log('[ARS-COMMENTS] mapTab: ranges=' + sortedKeys.length + ', mapeados=' + mapeados + ', orfaos=' + orfaos);
+  return out;
+}
+
+/* ── MOD 6: helper de dedup ── */
+function dedupItems(items) {
+  const seen = new Set();
+  return items.filter(it => {
+    const key = it.discName + '|' + it.title + '|' + it.dateStr;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+/* ── END MOD 6 ── */
+
+async function syncDocs() {
+  if (!STATE.saJson) { showToast('Configure o JSON da Service Account primeiro.', 'error'); showScreen('setup'); return; }
+  if (!STATE.disciplines.length) { showToast('Cadastre pelo menos uma disciplina.', 'error'); showScreen('setup'); return; }
+
+  const btn = document.getElementById('btn-sync');
+  btn.classList.add('syncing');
+  btn.querySelector('.sync-label').textContent = 'Sincronizando...';
+
+  try {
+    const existingCacheKeys = new Set(await cacheGetAllKeys());
+    const activeCacheKeys   = new Set();
+    const token = await ensureToken();
+    const allItems = [];
+
+    /* ── MOD 3: pré-carregar chaves por docId ── */
+    const keysByDoc = new Map();
+    for (const key of existingCacheKeys) {
+      if (key.endsWith('::__meta__')) continue;
+      const docId = key.split('::')[0];
+      if (!keysByDoc.has(docId)) keysByDoc.set(docId, []);
+      keysByDoc.get(docId).push(key);
+    }
+    /* ── END MOD 3 ── */
+
+    // Remove metadados de disciplinas que não existem mais
+    const activeDocIds = new Set(STATE.disciplines.map(d => d.docId));
+    for (const key of existingCacheKeys) {
+      if (key.endsWith('::__meta__') && !activeDocIds.has(key.replace('::__meta__', ''))) {
+        await cacheDelete(key);
+      }
+    }
+
+    /* ── MOD 3+4+5: processDisc otimizado ── */
+    async function processDisc(disc) {
+      try {
+        /* ── FIX V2: usa Drive API modifiedTime (funciona p/ qualquer permissão) ── */
+        const metaResp = await fetch(
+          `https://www.googleapis.com/drive/v3/files/${disc.docId}?fields=modifiedTime`,
+          { headers: { Authorization: 'Bearer ' + token } }
+        );
+        const meta = metaResp.ok ? await metaResp.json() : {};
+        const docModifiedTime = meta.modifiedTime || '';
+        const firstDocKey = `${disc.docId}::__meta__`;
+        const cachedMeta  = await cacheGet(firstDocKey);
+        const cachedTime  = cachedMeta?.modifiedTime || cachedMeta?.revisionId || '';
+        const docUnchanged = cachedMeta && cachedTime === docModifiedTime;
+        console.log(`[SYNC] ${disc.name} (${disc.docId}): modifiedTime API="${docModifiedTime}" cache="${cachedTime}" unchanged=${docUnchanged} metaStatus=${metaResp.status}`);
+
+        // Cache válido: reutilizar abas em cache (MOD 4 — leitura em lote + parsedItems)
+        if (docUnchanged) {
+          const docKeys = (keysByDoc.get(disc.docId) || []).filter(k => !k.endsWith('::__meta__'));
+          const cachedEntries = await cacheGetMany(docKeys);
+          const items = [];
+          let totalCached = 0;
+          const entriesToUpgrade = [];
+          for (let i = 0; i < docKeys.length; i++) {
+            const key = docKeys[i];
+            const cached = cachedEntries[i];
+            activeCacheKeys.add(key);
+            if (!cached?.nodes) continue;
+            if (cached.parsedItems) {
+              items.push(...cached.parsedItems);
+            } else {
+              const plainText = cached.nodes.map(n => n.plainText || '').join('\n');
+              const parsed = parseItemsFromText(plainText, disc.name, cached.tabName || key.split('::')[1]);
+              items.push(...parsed);
+              const sizeBytes = JSON.stringify(cached.nodes || []).length;
+              entriesToUpgrade.push({ key, ...cached, parsedItems: parsed, sizeBytes });
+            }
+            totalCached++;
+          }
+          if (entriesToUpgrade.length > 0) await cacheSetMany(entriesToUpgrade);
+          console.log(`[SYNC] ${disc.name}: ${totalCached} abas reutilizadas via cache (modifiedTime inalterado)`);
+          return { discName: disc.name, items, totalNew: 0, totalCached, error: null, activeKeys: [...docKeys, firstDocKey] };
+        }
+
+        // Cache inválido: baixar tudo (MOD 5 — escrita em lote + parsedItems + sizeBytes)
+        const allTabs = await fetchDocTabs(disc.docId, token);
+
+        const tabsData = [];
+        for (const tab of allTabs) {
+          const tabId = tab.tabProperties?.tabId || '';
+          const tabName = tab.tabProperties?.title || 'Sem título';
+          const nodes = extractParagraphsFromTab(tab);
+          const plainText = nodes.map(n => n.plainText || '').join('\n');
+          tabsData.push({ tabName, tabId, nodes, plainText, comments: [], commentsSyncStatus: 'pending' });
+        }
+        activeCacheKeys.add(firstDocKey);
+
+        // Export DOCX do documento inteiro e atribuir ranges por aba
+        console.log('[ARS-COMMENTS] Exportando DOCX para disc "' + disc.name + '"');
+        const commentResult = await fetchDocxComments(disc.docId, token);
+        const tabDocxResults = assignRangesToTabs(commentResult, tabsData);
+
+        const entriesToWrite = [];
+        const items = [];
+        for (let ti = 0; ti < tabsData.length; ti++) {
+          const td = tabsData[ti];
+          const tabDocx = tabDocxResults[ti];
+          if (tabDocx && tabDocx.status === 'ok') {
+            td.comments = mapTabRangesToNodes(td.nodes, tabDocx);
+            td.commentsSyncStatus = tabDocx.status;
+          } else if (tabDocx && tabDocx.status === 'no-comments') {
+            td.comments = [];
+            td.commentsSyncStatus = tabDocx.status;
+          } else {
+            td.comments = [];
+            td.commentsSyncStatus = 'failed';
+          }
+
+          const cacheKey = `${disc.docId}::${td.tabName}`;
+          activeCacheKeys.add(cacheKey);
+          const parsed = parseItemsFromText(td.plainText, disc.name, td.tabName);
+          const sizeBytes = JSON.stringify(td.nodes || []).length;
+          entriesToWrite.push({
+            key: cacheKey,
+            nodes: td.nodes,
+            modifiedTime: docModifiedTime,
+            savedAt: Date.now(),
+            discName: disc.name,
+            tabName: td.tabName,
+            comments: td.comments,
+            commentsSyncStatus: td.commentsSyncStatus,
+            schemaVersion: 2,
+            parsedItems: parsed,
+            sizeBytes
+          });
+          items.push(...parsed);
+        }
+        entriesToWrite.push({
+          key: firstDocKey,
+          modifiedTime: docModifiedTime,
+          savedAt: Date.now()
+        });
+        await cacheSetMany(entriesToWrite);
+
+        console.log(`[SYNC] ${disc.name}: baixadas ${tabsData.length} abas (modifiedTime mudou: "${docModifiedTime}")`);
+        return { discName: disc.name, items, totalNew: tabsData.length, totalCached: 0, error: null, activeKeys: [firstDocKey] };
+      } catch (e) {
+        console.warn(`Erro em ${disc.name}:`, e.message);
+        return { discName: disc.name, items: [], totalNew: 0, totalCached: 0, error: e.message, activeKeys: [] };
+      }
+    }
+    /* ── END MOD 3+4+5 ── */
+
+    /* ── MOD 6: progresso + render incremental ── */
+    let done = 0;
+    const total = STATE.disciplines.length;
+    const btnLabel = btn.querySelector('.sync-label');
+    let renderTimer = null;
+
+    const results = await pMap(STATE.disciplines, async disc => {
+      const r = await processDisc(disc);
+      done++;
+      btnLabel.textContent = `Sincronizando ${done}/${total}`;
+      if (r.items) allItems.push(...r.items);
+      if (r.activeKeys) r.activeKeys.forEach(k => activeCacheKeys.add(k));
+      if (r.error) showToast(`Erro em "${r.discName}": ${r.error}`, 'error');
+      // Render incremental com debounce (só se houve abas novas/editadas)
+      if (r.totalNew > 0 && done < total) {
+        const partialItems = await dedupItems(allItems);
+        STATE.items = partialItems;
+        saveState();
+        if (document.getElementById('screen-agenda').classList.contains('active')) {
+          clearTimeout(renderTimer);
+          renderTimer = setTimeout(() => renderAgenda(), 400);
+        }
+      }
+      return r;
+    }, 4);
+
+    let totalNew = 0;
+    let totalCached = 0;
+    for (const r of results) {
+      totalNew += r.totalNew || 0;
+      totalCached += r.totalCached || 0;
+    }
+    /* ── END MOD 6 ── */
+
+    // Limpar caches de abas que não existem mais
+    for (const key of existingCacheKeys) {
+      if (!activeCacheKeys.has(key) && !key.endsWith('::__meta__')) {
+        await cacheDelete(key);
+      }
+    }
+
+    // Dedup final
+    STATE.items = dedupItems(allItems);
+
+    saveState();
+    const msg = totalNew > 0
+      ? `✅ ${STATE.items.length} itens — ${totalNew} aba${totalNew>1?'s':''} atualizada${totalNew>1?'s':''}, ${totalCached} do cache`
+      : `✅ ${STATE.items.length} itens (tudo do cache, nenhuma alteração detectada)`;
+    showToast(msg, 'success');
+    renderAgenda();
+  } catch(e) {
+    showToast('Erro na sincronização: ' + e.message, 'error');
+  } finally {
+    btn.classList.remove('syncing');
+    btn.querySelector('.sync-label').textContent = 'Sincronizar';
+  }
+}
+
+/* ══════════════════════════════════════════════
+   VIEWER DE CONTEÚDO — v4 (comentários via cache DOCX)
+══════════════════════════════════════════════ */
+
+/**
+ * spansToHtmlWithMarks(spans, marks)
+ * marks: array de {cid, startCharInNode, endCharInNode} referente a este nó
+ */
+function spansToHtmlWithMarks(spans, marks) {
+  // Primeiro, concatena o texto completo do nó
+  let fullText = '';
+  const spanBoundaries = [];
+  for (const s of spans) {
+    const start = fullText.length;
+    const end = start + s.text.length;
+    spanBoundaries.push({ span: s, start, end });
+    fullText += s.text;
+  }
+
+  if (!marks.length) {
+    return spansToHtml(spans);
+  }
+
+  // Ordena marks por start
+  const sortedMarks = [...marks].sort((a,b) => a.startCharInNode - b.startCharInNode);
+  
+  // Função para renderizar um span com marcações dentro dele
+  const renderSpanWithMark = (span, spanStart, spanEnd, marksInSpan) => {
+    if (!marksInSpan.length) return spansToHtml([span]);
+    
+    let html = '';
+    let cursor = spanStart;
+    for (const m of marksInSpan) {
+      const actualMarkStart = Math.max(cursor, m.startCharInNode);
+      const actualMarkEnd = Math.min(spanEnd, m.endCharInNode);
+      if (actualMarkEnd <= actualMarkStart) continue;
+      if (cursor < actualMarkStart) {
+        const beforeSpan = { ...span, text: span.text.substring(cursor - spanStart, actualMarkStart - spanStart) };
+        html += spansToHtml([beforeSpan]);
+      }
+      const markSpan = { ...span, text: span.text.substring(actualMarkStart - spanStart, actualMarkEnd - spanStart) };
+      const markHtml = spansToHtml([markSpan]);
+      html += `<mark class="vc-highlight" data-cid="${escHtml(m.cid)}">${markHtml}</mark>`;
+      cursor = actualMarkEnd;
+    }
+    if (cursor < spanEnd) {
+      const afterSpan = { ...span, text: span.text.substring(cursor - spanStart, spanEnd - spanStart) };
+      html += spansToHtml([afterSpan]);
+    }
+    return html;
+  };
+
+  // Reúne marks por span
+  const marksBySpanIdx = new Array(spanBoundaries.length).fill().map(() => []);
+  for (const m of sortedMarks) {
+    for (let i = 0; i < spanBoundaries.length; i++) {
+      const sb = spanBoundaries[i];
+      if (m.startCharInNode < sb.end && m.endCharInNode > sb.start) {
+        marksBySpanIdx[i].push(m);
+      }
+    }
+  }
+
+  let result = '';
+  for (let i = 0; i < spanBoundaries.length; i++) {
+    const { span, start, end } = spanBoundaries[i];
+    const marksHere = marksBySpanIdx[i];
+    result += renderSpanWithMark(span, start, end, marksHere);
+  }
+  return result;
+}
+
+/**
+ * paragraphToHtmlWithMarks(p, marks)
+ * Similar a paragraphToHtml, mas usa spansToHtmlWithMarks
+ */
+function paragraphToHtmlWithMarks(p, marks) {
+  if (!p.plainText.trim()) return '<div class="vc-spacer"></div>';
+
+  const inner = spansToHtmlWithMarks(p.spans, marks);
+
+  const indentPx = Math.min(Math.round(p.indentPt * 1.333), 120);
+  const indentStyle = indentPx > 0 ? `padding-left:${indentPx}px;` : '';
+  const alignMap = { CENTER: 'center', END: 'right', JUSTIFIED: 'justify' };
+  const alignStyle = alignMap[p.align] ? `text-align:${alignMap[p.align]};` : '';
+  const marginStyle = p.spaceAfterPt > 0 ? `margin-bottom:${Math.round(p.spaceAfterPt*1.333)}px;` : '';
+  const styleAttr = (indentStyle || alignStyle || marginStyle) ? ` style="${indentStyle}${alignStyle}${marginStyle}"` : '';
+
+  if (p.isHeading) {
+    const levelMap = {HEADING_1:'vc-h1',HEADING_2:'vc-h2',HEADING_3:'vc-h3',HEADING_4:'vc-h4',HEADING_5:'vc-h5',HEADING_6:'vc-h6'};
+    const cls = levelMap[p.namedStyle] || 'vc-h3';
+    return `<div class="vc-heading ${cls}"${styleAttr}>${inner}</div>`;
+  }
+  if (/\d{2}\/\d{2}\/\d{4}/.test(p.plainText)) {
+    return `<div class="vc-date-line">${inner}</div>`;
+  }
+  if (p.hasBullet) {
+    const nestPx = p.nestLevel * 18;
+    const totalPx = 18 + nestPx + indentPx;
+    return `<div class="vc-bullet" style="padding-left:${totalPx}px;${alignStyle}${marginStyle}">${inner}</div>`;
+  }
+  return `<div class="vc-line"${styleAttr}>${inner}</div>`;
+}
+
+function nodeToHtmlWithHighlight(node, marks) {
+  if (node.type === 'table') {
+    // Tabelas: não suporta marks nesta versão
+    return tableToHtml(node);
+  }
+  return paragraphToHtmlWithMarks(node, marks);
+}
+
+async function openViewer(ev) {
+  const item = ev.item;
+  const rNum = ev.rNum;
+  const col  = R_COLORS[rNum];
+
+  document.getElementById('viewer-disc-badge').textContent =
+    getDiscCode(item.discName) + ' · ' + item.discName;
+  document.getElementById('viewer-title').textContent = escHtml(truncateTitle(item.title));
+
+  const instrument = getInstrument(rNum, item.title);
+  document.getElementById('viewer-meta').innerHTML = `
+    <span class="viewer-meta-badge" style="background:${col.bg};color:${col.c}">${REVISION_LABELS[rNum]}</span>
+    <span class="viewer-meta-badge">${instrument}</span>
+    <span class="viewer-meta-badge">Estudado em ${item.dateStr}</span>
+  `;
+
+  const body = document.getElementById('viewer-body');
+  body.innerHTML = `<div class="viewer-loading"><span class="viewer-loading-icon">⏳</span><div>Carregando conteúdo...</div></div>`;
+  openModal('modal-viewer');
+
+  if (!STATE.saJson) {
+    body.innerHTML = `<div class="viewer-error">⚠️ Configure a Service Account em Configurações para visualizar o conteúdo.</div>`;
+    return;
+  }
+
+  try {
+    const disc = STATE.disciplines.find(d => d.name === item.discName);
+    if (!disc) throw new Error('Disciplina não encontrada.');
+    const cacheKey = `${disc.docId}::${item.tabName}`;
+    let paras = null;
+    const cached = await cacheGet(cacheKey);
+    if (cached?.nodes) {
+      paras = cached.nodes;
+    } else {
+      const token = await ensureToken();
+      const tabs  = await fetchDocTabs(disc.docId, token);
+      const tab   = tabs.find(t => (t.tabProperties?.title || 'Sem título') === item.tabName);
+      if (!tab) throw new Error(`Aba "${item.tabName}" não encontrada.`);
+      paras = extractParagraphsFromTab(tab);
+      await cacheSet(cacheKey, { nodes: paras, revisionId: '', savedAt: Date.now(), discName: disc.name, tabName: item.tabName });
+    }
+
+    // --- Comentários via cache (DOCX) ---
+    console.log('[ARS-COMMENTS] viewer', item.tabName, 'cached.comments=', cached?.comments?.length ?? 'undefined', 'status=', cached?.commentsSyncStatus, 'schema=', cached?.schemaVersion);
+    const commentsByNode = new Map();
+    const commentById = new Map();
+    const schemaOk = cached?.schemaVersion === 2;
+
+    let anchorIdx = -1;
+    for (let i = 0; i < paras.length; i++) {
+      if (paras[i].type !== 'table' && paras[i].plainText.includes(item.dateStr)) {
+        anchorIdx = i;
+        break;
+      }
+    }
+    if (anchorIdx === -1) anchorIdx = 0;
+    let blockEnd = paras.length;
+    for (let i = anchorIdx + 1; i < paras.length; i++) {
+      const node = paras[i];
+      if (node.type === 'table') continue;
+      if (/\d{2}\/\d{2}\/\d{4}/.test(node.plainText)) {
+        const txt = node.plainText.toUpperCase();
+        if (txt.includes('AULA') || txt.includes('MAPEAMENTO')) {
+          blockEnd = i;
+          break;
+        }
+      }
+    }
+    const block = paras.slice(anchorIdx, blockEnd);
+
+    let noBloco = 0;
+    if (!schemaOk) {
+      for (const c of (cached?.comments || [])) { commentById.set(c.id, c); }
+    } else {
+      const unresolvedComments = (cached?.comments || []).filter(c => !c.resolved);
+      for (const c of unresolvedComments) { commentById.set(c.id, c); }
+
+      for (const c of unresolvedComments) {
+        if (c.startNodeIdx === undefined || c.endNodeIdx === undefined) continue;
+        if (c.endNodeIdx < anchorIdx || c.startNodeIdx >= blockEnd) continue;
+        noBloco++;
+        const startInBlock = Math.max(c.startNodeIdx, anchorIdx) - anchorIdx;
+        const endInBlock = Math.min(c.endNodeIdx, blockEnd - 1) - anchorIdx;
+        const startOffset = c.startNodeIdx >= anchorIdx ? c.startCharInNode : 0;
+        const endOffset = c.endNodeIdx < blockEnd ? c.endCharInNode : (block[endInBlock].plainText || '').length;
+        if (startInBlock === endInBlock) {
+          if (!commentsByNode.has(startInBlock)) commentsByNode.set(startInBlock, []);
+          commentsByNode.get(startInBlock).push({ cid: c.id, startCharInNode: startOffset, endCharInNode: endOffset });
+        } else {
+          if (!commentsByNode.has(startInBlock)) commentsByNode.set(startInBlock, []);
+          const firstNodeLen = (block[startInBlock].plainText || '').length;
+          commentsByNode.get(startInBlock).push({ cid: c.id, startCharInNode: startOffset, endCharInNode: firstNodeLen });
+          for (let i = startInBlock + 1; i < endInBlock; i++) {
+            if (!commentsByNode.has(i)) commentsByNode.set(i, []);
+            const nodeLen = (block[i].plainText || '').length;
+            commentsByNode.get(i).push({ cid: c.id, startCharInNode: 0, endCharInNode: nodeLen });
+          }
+          if (!commentsByNode.has(endInBlock)) commentsByNode.set(endInBlock, []);
+          commentsByNode.get(endInBlock).push({ cid: c.id, startCharInNode: 0, endCharInNode: endOffset });
+        }
+      }
+    }
+    
+    // Renderizar com highlights
+    let htmlParts = [];
+    for (let i = 0; i < block.length; i++) {
+      const marks = commentsByNode.get(i) || [];
+      htmlParts.push(nodeToHtmlWithHighlight(block[i], marks));
+    }
+    const html = htmlParts.join('');
+    
+    // Diagnóstico de comentários
+    let commentsDiagHtml = '';
+    if (!schemaOk) {
+      commentsDiagHtml = `<div class="vc-comments-diag vc-comments-diag-error">⚠️ Cache em formato antigo. Clique em Sincronizar para regenerar comentários.</div>`;
+    } else if (cached?.commentsSyncStatus === 'failed') {
+      commentsDiagHtml = `<div class="vc-comments-diag vc-comments-diag-error">⚠️ Falha ao baixar comentários do Google Docs. Abra o console (F12) para detalhes. Verifique se a Service Account tem permissão de Leitor (não apenas Comentarista) no documento.</div>`;
+    } else if (cached?.commentsSyncStatus === 'no-comments') {
+      commentsDiagHtml = `<div class="vc-comments-diag">💬 Este documento não possui comentários ativos.</div>`;
+    } else if (cached?.commentsSyncStatus === 'ok' && (cached?.comments?.length ?? 0) === 0) {
+      commentsDiagHtml = `<div class="vc-comments-diag">💬 Este documento não possui comentários ativos.</div>`;
+    } else if (cached?.commentsSyncStatus === 'ok' && cached?.comments?.length > 0 && noBloco === 0) {
+      commentsDiagHtml = `<div class="vc-comments-diag">💬 Os comentários desta aba estão fora do bloco desta aula.</div>`;
+    }
+    
+    body.innerHTML = `<div class="viewer-content">${html || '<div class="viewer-error">Conteúdo não encontrado.</div>'}${commentsDiagHtml}</div>`;
+    
+    // Popover para comentários (event delegation)
+    body.addEventListener('click', e => {
+      const mark = e.target.closest('mark.vc-highlight[data-cid]');
+      if (mark) {
+        e.stopPropagation();
+        body.querySelectorAll('.vc-popover').forEach(p => p.remove());
+        const cid = mark.getAttribute('data-cid');
+        const c = commentById.get(cid);
+        if (!c) return;
+        const pop = document.createElement('div');
+        pop.className = 'vc-popover';
+        const formattedDate = c.date ? new Date(c.date).toLocaleDateString('pt-BR') : '';
+        const quoted = c.quotedText ? `"${escHtml(c.quotedText.length>160?c.quotedText.slice(0,160)+'…':c.quotedText)}"` : '';
+        pop.innerHTML = [
+          '<div class="vc-cm-header">',
+          `<span class="vc-cm-author">${escHtml(c.author)}</span>`,
+          `<span class="vc-cm-time">${formattedDate}</span>`,
+          '<button class="vc-popover-close" onclick="this.closest(\'.vc-popover\').remove()">✕</button>',
+          '</div>',
+          quoted ? `<div class="vc-cm-quote">${quoted}</div>` : '',
+          `<div class="vc-cm-body">${escHtml(c.text)}</div>`
+        ].join('');
+        const markRect = mark.getBoundingClientRect();
+        const bodyRect = body.getBoundingClientRect();
+        pop.style.top  = (markRect.bottom - bodyRect.top + body.scrollTop + 6) + 'px';
+        pop.style.left = Math.max(0, Math.min(markRect.left - bodyRect.left, body.clientWidth - 316)) + 'px';
+        body.appendChild(pop);
+        return;
+      }
+      body.querySelectorAll('.vc-popover').forEach(p => p.remove());
+    });
+    
+  } catch(e) {
+    body.innerHTML = `<div class="viewer-error">⚠️ ${escHtml(e.message)}</div>`;
+  }
+}
+
+/* ══════════════════════════════════════════════
+   LÓGICA DE REVISÃO
+══════════════════════════════════════════════ */
+function getItemsForDate(targetDate) {
+  const key = dateKey(targetDate);
+  const result = [];
+  for (const item of STATE.items) {
+    for (let i = 0; i < REVISION_INTERVALS.length; i++) {
+      const revDate = addDays(item.dateObj, REVISION_INTERVALS[i]);
+      if (dateKey(revDate) === key) {
+        result.push({ rNum: i+1, item });
+      }
+    }
+  }
+  result.sort((a,b) => a.rNum - b.rNum);
+  return result;
+}
+
+function hasRevisionsOnDate(d) {
+  return getItemsForDate(d).length > 0;
+}
+
+/* ══════════════════════════════════════════════
+   RENDER — AGENDA DO DIA
+══════════════════════════════════════════════ */
+function renderAgenda() {
+  const t = today();
+
+  document.getElementById('agenda-date-main').textContent = fmtDateBR(t);
+  document.getElementById('agenda-date-sub').textContent  = fmtDateLong(t);
+
+  const items = getItemsForDate(t);
+  document.getElementById('stat-total').textContent = items.length;
+  const discs = new Set(items.map(x => x.item.discName));
+  document.getElementById('stat-disc').textContent = discs.size;
+
+  const container = document.getElementById('agenda-content');
+
+  if (items.length === 0) {
+    container.innerHTML = `
+      <div class="agenda-empty">
+        <span class="agenda-empty-icon">🎉</span>
+        <div class="agenda-empty-title">Nenhuma revisão hoje!</div>
+        <div class="agenda-empty-sub">Aproveite para estudar novo conteúdo ou descansar.<br>
+        ${STATE.items.length === 0 ? 'Sincronize seus documentos para começar.' : ''}</div>
+      </div>`;
+    return;
+  }
+
+  // Agrupa por R
+  const byR = {};
+  for (const ev of items) {
+    if (!byR[ev.rNum]) byR[ev.rNum] = [];
+    byR[ev.rNum].push(ev);
+  }
+
+  let html = '';
+  for (const rNum of Object.keys(byR).map(Number).sort((a,b)=>a-b)) {
+    const col        = R_COLORS[rNum];
+    const evs        = byR[rNum];
+    // Instrumento do grupo: usa o primeiro item (se houver MAPEAMENTO, cada card tem o seu)
+    const groupInstrument = getInstrument(rNum, evs[0].item.title);
+
+    html += `
+      <div class="freq-group">
+        <div class="freq-group-header">
+          <span class="freq-badge" style="background:${col.bg};color:${col.c}">${REVISION_LABELS[rNum]}</span>
+          <span class="freq-instrument">${groupInstrument}</span>
+          <span style="font-size:12px;color:var(--text-secondary)">${evs.length} item${evs.length>1?'s':''}</span>
+        </div>`;
+
+    for (const ev of evs) {
+      const code       = escHtml(getDiscCode(ev.item.discName));
+      const title      = escHtml(truncateTitle(ev.item.title));
+      const instrument = escHtml(getInstrument(rNum, ev.item.title));
+      const dateShort  = fmtDateShort(ev.item.dateObj);
+      const evIdx      = STATE.items.indexOf(ev.item);
+
+      html += `
+        <div class="item-card"
+             style="background:${col.bg};border-left-color:${col.c}"
+             onclick="openViewer(getEvByIdx(${rNum},${evIdx}))">
+          <div class="item-card-left">
+            <div class="item-card-disc" style="color:${col.c}">${code}</div>
+            <div class="item-card-title">${title}</div>
+          </div>
+          <div class="item-card-right">
+            <span class="item-card-instrument"
+                  style="background:${col.c}22;color:${col.c}">${instrument}</span>
+            <span class="item-card-date-short" style="color:${col.c}">${dateShort}</span>
+          </div>
+        </div>`;
+    }
+    html += `</div>`;
+  }
+
+  container.innerHTML = html;
+}
+
+// Helper para recriar o ev object pelo índice (necessário para o onclick inline)
+function getEvByIdx(rNum, itemIdx) {
+  return { rNum, item: STATE.items[itemIdx] };
+}
+
+/* ══════════════════════════════════════════════
+   RENDER — CALENDÁRIO
+══════════════════════════════════════════════ */
+function renderCalendar() {
+  const year  = STATE.calYear;
+  const month = STATE.calMonth;
+  const t     = today();
+  const months = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+  document.getElementById('cal-month-label').textContent = months[month] + ' ' + year;
+
+  const firstDay    = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+
+  let html = '';
+
+  for (let i = 0; i < firstDay; i++) {
+    html += `<div class="cal-day cal-day-empty"></div>`;
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateObj   = new Date(year, month, d);
+    const key       = dateKey(dateObj);
+    const isToday   = key === dateKey(t);
+    const isSelected= STATE.calSelectedDate && dateKey(STATE.calSelectedDate) === key;
+    const isFuture  = dateObj > t;
+    const items     = getItemsForDate(dateObj);
+    
+    // Pontos coloridos por frequência (R1..R10)
+    const uniqueRs = [...new Set(items.map(e => e.rNum))].sort((a,b)=>a-b);
+    let dotHtml = '';
+    if (uniqueRs.length) {
+      dotHtml = '<div class="cal-day-dots">' + 
+        uniqueRs.map(r => `<span class="cal-day-dot" style="background:var(--r${r}-color)" title="${REVISION_LABELS[r]}"></span>`).join('') + 
+        '</div>';
+    }
+
+    let classes  = 'cal-day';
+    if (isToday)    classes += ' cal-day-today';
+    if (isSelected) classes += ' cal-day-selected';
+
+    html += `<div class="${classes}" onclick="calSelectDay(${year},${month},${d})">${d}${dotHtml}</div>`;
+  }
+
+  document.getElementById('cal-grid').innerHTML = html;
+}
+
+function calSelectDay(year, month, day) {
+  STATE.calSelectedDate = new Date(year, month, day);
+  renderCalendar();
+  renderCalSidebar();
+}
+
+function calNavMonth(dir) {
+  STATE.calMonth += dir;
+  if (STATE.calMonth > 11) { STATE.calMonth = 0; STATE.calYear++; }
+  if (STATE.calMonth < 0)  { STATE.calMonth = 11; STATE.calYear--; }
+  renderCalendar();
+}
+
+function renderCalSidebar() {
+  const d = STATE.calSelectedDate;
+  if (!d) return;
+
+  const t      = today();
+  const key    = dateKey(d);
+  const isToday= key === dateKey(t);
+  const isFuture = d > t && !isToday;
+  const items  = getItemsForDate(d);
+
+  document.getElementById('cal-sidebar-title').textContent = fmtDateBR(d);
+  document.getElementById('cal-sidebar-sub').textContent   = fmtDateLong(d);
+
+  const statusEl = document.getElementById('cal-sidebar-status');
+  if (items.length === 0) {
+    statusEl.innerHTML = `<span class="cal-sidebar-status status-empty">Sem revisões</span>`;
+  } else if (isToday) {
+    statusEl.innerHTML = `<span class="cal-sidebar-status status-future">⏳ Hoje</span>`;
+  } else if (isFuture) {
+    statusEl.innerHTML = `<span class="cal-sidebar-status status-future">🔮 Agendado</span>`;
+  } else {
+    statusEl.innerHTML = `<span class="cal-sidebar-status status-future">📅 ${items.length} ${items.length===1?'revisão':'revisões'}</span>`;
+  }
+
+  const itemsEl = document.getElementById('cal-sidebar-items');
+  if (items.length === 0) {
+    itemsEl.innerHTML = `<div class="cal-sidebar-empty">Nenhuma revisão programada para este dia.</div>`;
+    return;
+  }
+
+  let html = '';
+  for (const ev of items) {
+    const col    = R_COLORS[ev.rNum];
+    const code   = escHtml(getDiscCode(ev.item.discName));
+    const title  = escHtml(truncateTitle(ev.item.title));
+    const evIdx  = STATE.items.indexOf(ev.item);
+
+    html += `
+      <div class="cal-sidebar-item" style="border-left-color:${col.c};background:${col.bg}"
+           onclick="openViewer(getEvByIdx(${ev.rNum},${evIdx}))">
+        <div class="cal-sidebar-item-freq" style="color:${col.c}">${REVISION_LABELS[ev.rNum]} · ${getInstrument(ev.rNum, ev.item.title)}</div>
+        <div class="cal-sidebar-item-title">${title}</div>
+        <div class="cal-sidebar-item-disc">${code} · ${escHtml(ev.item.dateStr)}</div>
+      </div>`;
+  }
+  itemsEl.innerHTML = html;
+}
+
+/* ══════════════════════════════════════════════
+   RENDER — SETUP
+══════════════════════════════════════════════ */
+function renderSetup() {
+  renderSaStatus();
+  const sheetsInput = document.getElementById('sheets-id-input');
+  if (sheetsInput) sheetsInput.value = STATE.sheetsId || '';
+  const list = document.getElementById('disc-list');
+  if (!STATE.disciplines.length) {
+    list.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-secondary);font-size:13px;">Nenhuma disciplina cadastrada.</div>`;
+  } else {
+    list.innerHTML = STATE.disciplines.map((d, i) => `
+      <div class="disc-item">
+        <div class="disc-item-icon">📚</div>
+        <div class="disc-item-info">
+          <div class="disc-item-name">${escHtml(d.name)}</div>
+          ${d.code ? `<div class="disc-item-code">${escHtml(d.code.toUpperCase())}</div>` : ''}
+          <div class="disc-item-id">${escHtml(d.docId)}</div>
+        </div>
+        <button class="btn-disc-remove" onclick="removeDisc(${i})" title="Remover">✕</button>
+      </div>`).join('');
+  }
+  renderCacheStats();
+}
+
+async function renderCacheStats() {
+  const loadingEl = document.getElementById('cache-stats-loading');
+  const statsEl   = document.getElementById('cache-stats');
+  if (!loadingEl || !statsEl) return;
+
+  loadingEl.style.display = 'block';
+  statsEl.style.display   = 'none';
+
+  try {
+    const allKeys = await cacheGetAllKeys();
+    // Filtra chaves de metadados internos (__meta__) — não são abas reais
+    const keys = allKeys.filter(k => !k.endsWith('::__meta__'));
+
+    let totalBytes = 0;
+    let newestTs   = 0;
+    const rows = [];
+
+    /* ── MOD 7: cacheGetAllEntries + sizeBytes ── */
+    const allEntries = await cacheGetAllEntries('');
+    for (const entry of allEntries) {
+      if (!entry || !entry.key || entry.key.endsWith('::__meta__')) continue;
+      const sizeBytes = entry.sizeBytes || JSON.stringify(entry.nodes || []).length;
+      totalBytes += sizeBytes;
+      const ts = entry.savedAt || 0;
+      if (ts > newestTs) newestTs = ts;
+      const discName = entry.discName || '';
+      const discCode = discName ? (getDiscCode(discName) || discName.split(/\s+/).map(w=>w[0]).join('').slice(0,5).toUpperCase()) : '—';
+      rows.push({
+        key: entry.key,
+        discCode,
+        tabName:  entry.tabName || entry.key.split('::').slice(1).join('::'),
+        sizeBytes,
+        savedAt:  ts
+      });
+    }
+    /* ── END MOD 7 ── */
+
+    function fmtSize(b) {
+      if (b < 1024)       return b + ' B';
+      if (b < 1024*1024)  return (b/1024).toFixed(1) + ' KB';
+      return (b/1024/1024).toFixed(2) + ' MB';
+    }
+    function fmtTs(ts) {
+      if (!ts) return '—';
+      const d = new Date(ts);
+      return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    }
+
+    document.getElementById('cache-stat-grid').innerHTML = `
+      <div class="cache-stat-box">
+        <div class="cache-stat-box-n">${keys.length}</div>
+        <div class="cache-stat-box-l">Abas em cache</div>
+      </div>
+      <div class="cache-stat-box">
+        <div class="cache-stat-box-n">${fmtSize(totalBytes)}</div>
+        <div class="cache-stat-box-l">Tamanho estimado</div>
+      </div>
+      <div class="cache-stat-box">
+        <div class="cache-stat-box-n" style="font-size:15px;">${keys.length ? fmtTs(newestTs) : '—'}</div>
+        <div class="cache-stat-box-l">Última atualização</div>
+      </div>`;
+
+    if (!rows.length) {
+      document.getElementById('cache-tab-list').innerHTML =
+        `<div style="color:var(--text-secondary);font-size:13px;padding:10px 0;">Nenhuma aba em cache. Sincronize para popular o cache.</div>`;
+    } else {
+      rows.sort((a,b) => a.discCode.localeCompare(b.discCode) || a.tabName.localeCompare(b.tabName));
+      document.getElementById('cache-tab-list').innerHTML = rows.map(r => `
+        <div class="cache-tab-row">
+          <span class="cache-tab-disc">${escHtml(r.discCode)}</span>
+          <span class="cache-tab-name" title="${escHtml(r.tabName)}">${escHtml(r.tabName)}</span>
+          <span class="cache-tab-size">${fmtSize(r.sizeBytes)}</span>
+          <span class="cache-tab-date">${fmtTs(r.savedAt)}</span>
+        </div>`).join('');
+    }
+
+    loadingEl.style.display = 'none';
+    statsEl.style.display   = 'block';
+  } catch(e) {
+    loadingEl.textContent = 'Erro ao carregar estatísticas do cache.';
+  }
+}
+
+async function clearCache() {
+  if (!confirm('Limpar todo o cache? O conteúdo será baixado novamente na próxima sincronização.')) return;
+  try {
+    const keys = await cacheGetAllKeys(); // inclui __meta__
+    for (const key of keys) await cacheDelete(key);
+    localStorage.removeItem('ars_items');
+    STATE.items = [];
+    saveState();
+    renderAgenda();
+    renderCalendar();
+    renderCalSidebar();
+    showToast(`🗑️ Cache limpo (${keys.length} entrada${keys.length!==1?'s':''} removida${keys.length!==1?'s':''}).`, 'info');
+    renderCacheStats();
+  } catch(e) {
+    showToast('Erro ao limpar cache: ' + e.message, 'error');
+  }
+}
+
+/* ══════════════════════════════════════════════
+   AÇÕES
+══════════════════════════════════════════════ */
+function openAddDisc() {
+  document.getElementById('new-disc-name').value = '';
+  document.getElementById('new-disc-code').value = '';
+  document.getElementById('new-disc-id').value   = '';
+  openModal('modal-add-disc');
+}
+
+function confirmAddDisc() {
+  const name  = document.getElementById('new-disc-name').value.trim();
+  const code  = document.getElementById('new-disc-code').value.trim().toUpperCase();
+  const docId = document.getElementById('new-disc-id').value.trim();
+  if (!name)  { showToast('Informe o nome da disciplina.', 'error'); return; }
+  if (!code)  { showToast('Informe a sigla da disciplina.', 'error'); return; }
+  if (!docId) { showToast('Informe o ID do Google Doc.', 'error'); return; }
+  STATE.disciplines.push({ name, code, docId });
+  saveState();
+  renderSetup();
+  closeModal('modal-add-disc');
+  showToast(`"${name}" (${code}) adicionada.`, 'success');
+  // Auto-sync para a planilha se o ID estiver configurado
+  if (STATE.sheetsId && STATE.saJson) {
+    // Preenche o campo antes de chamar syncSheets
+    const inp = document.getElementById('sheets-id-input');
+    if (inp) inp.value = STATE.sheetsId;
+    syncSheets().catch(() => {});
+  }
+}
+
+function removeDisc(i) {
+  const name = STATE.disciplines[i].name;
+  STATE.disciplines.splice(i, 1);
+  saveState();
+  renderSetup();
+  showToast(`"${name}" removida.`, 'info');
+}
+
+function saveSetup() {
+  if (STATE.saJson) {
+    try { JSON.parse(STATE.saJson); }
+    catch(e) { showToast('JSON da SA inválido — faça upload novamente.', 'error'); return; }
+  }
+  STATE.sheetsId = (document.getElementById('sheets-id-input')?.value || '').trim();
+  saveState();
+  showToast('✅ Configurações salvas!', 'success');
+}
+
+/* ══════════════════════════════════════════════
+   SERVICE ACCOUNT — UPLOAD E STATUS
+══════════════════════════════════════════════ */
+function handleSaUpload(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const json = e.target.result;
+      const parsed = JSON.parse(json);
+      if (parsed.type !== 'service_account') {
+        showToast('Arquivo inválido — não é uma Service Account.', 'error'); return;
+      }
+      STATE.saJson = json;
+      STATE.accessToken = null;
+      STATE.tokenExpiry = 0;
+      saveState();
+      renderSaStatus();
+      showToast('✅ Service Account carregada com sucesso!', 'success');
+    } catch(err) {
+      showToast('Erro ao ler o arquivo: ' + err.message, 'error');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+function renderSaStatus() {
+  const emptyEl     = document.getElementById('sa-empty');
+  const connectedEl = document.getElementById('sa-connected');
+  if (!emptyEl || !connectedEl) return;
+  if (STATE.saJson) {
+    try {
+      const parsed = JSON.parse(STATE.saJson);
+      document.getElementById('sa-email').textContent   = parsed.client_email || '—';
+      document.getElementById('sa-project').textContent = 'Projeto: ' + (parsed.project_id || '—');
+      emptyEl.style.display     = 'none';
+      connectedEl.style.display = 'block';
+    } catch(e) {
+      emptyEl.style.display     = 'block';
+      connectedEl.style.display = 'none';
+    }
+  } else {
+    emptyEl.style.display     = 'block';
+    connectedEl.style.display = 'none';
+  }
+}
+
+/* ══════════════════════════════════════════════
+   GOOGLE SHEETS — SYNC DE DISCIPLINAS
+══════════════════════════════════════════════ */
+async function syncSheets() {
+  const sheetsId = document.getElementById('sheets-id-input').value.trim();
+  if (!sheetsId) { showSheetsStatus('Informe o ID da planilha.', 'error'); return; }
+  if (!STATE.saJson) { showSheetsStatus('Configure a Service Account primeiro.', 'error'); return; }
+  STATE.sheetsId = sheetsId;
+  saveState();
+  const btn = document.getElementById('btn-sheets-sync');
+  btn.classList.add('syncing'); btn.disabled = true;
+  showSheetsStatus('Conectando...', 'info');
+  try {
+    const token = await ensureToken();
+    const baseUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetsId}/values`;
+    const range   = encodeURIComponent('disciplinas!A1:C');
+
+    // Garante que a aba existe
+    await ensureSheetsTab(sheetsId, token);
+
+    // Lê planilha
+    const readResp = await fetch(`${baseUrl}/${range}`, {
+      headers: { Authorization: 'Bearer ' + token }
+    });
+    let sheetsDiscs = [];
+    if (readResp.ok) {
+      const rows = (await readResp.json()).values || [];
+      for (let i = 1; i < rows.length; i++) {
+        const [name='', code='', docId=''] = rows[i];
+        if (name.trim() && docId.trim())
+          sheetsDiscs.push({ name: name.trim(), code: code.trim().toUpperCase(), docId: docId.trim() });
+      }
+    }
+
+    // Mescla: local prevalece por docId, planilha adiciona novos
+    const mergedMap = new Map();
+    for (const d of STATE.disciplines) mergedMap.set(d.docId, d);
+    for (const d of sheetsDiscs) { if (!mergedMap.has(d.docId)) mergedMap.set(d.docId, d); }
+    const merged = Array.from(mergedMap.values());
+
+    // Escreve resultado na planilha
+    const writeRows = [
+      ['Nome', 'Sigla', 'DocID'],
+      ...merged.map(d => [d.name, d.code || '', d.docId])
+    ];
+    const writeResp = await fetch(
+      `${baseUrl}/${encodeURIComponent('disciplinas!A1:C')}?valueInputOption=RAW`,
+      {
+        method:  'PUT',
+        headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ range: 'disciplinas!A1:C', majorDimension: 'ROWS', values: writeRows })
+      }
+    );
+    if (!writeResp.ok) {
+      const err = await writeResp.json();
+      throw new Error(err.error?.message || `Erro ${writeResp.status}`);
+    }
+
+    const added = merged.length - STATE.disciplines.length;
+    STATE.disciplines = merged;
+    saveState();
+    renderSetup();
+    const msg = added > 0
+      ? `✅ Sincronizado! ${added} disciplina${added>1?'s':''} importada${added>1?'s':''}. Total: ${merged.length}.`
+      : `✅ Sincronizado! ${merged.length} disciplina${merged.length!==1?'s':''} na planilha. Nenhuma novidade.`;
+    showSheetsStatus(msg, 'success');
+  } catch(e) {
+    showSheetsStatus('Erro: ' + e.message, 'error');
+  } finally {
+    btn.classList.remove('syncing'); btn.disabled = false;
+  }
+}
+
+async function ensureSheetsTab(sheetsId, token) {
+  const resp = await fetch(
+    `https://sheets.googleapis.com/v4/spreadsheets/${sheetsId}:batchUpdate`,
+    {
+      method:  'POST',
+      headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ requests: [{ addSheet: { properties: { title: 'disciplinas' } } }] })
+    }
+  );
+  if (!resp.ok) {
+    const err = await resp.json();
+    if (!err.error?.message?.includes('already exists')) throw new Error(err.error?.message || 'Erro ao criar aba');
+  }
+}
+
+function showSheetsStatus(msg, type) {
+  const el = document.getElementById('sheets-sync-status');
+  if (!el) return;
+  el.textContent = msg; el.className = `sheets-sync-status ${type}`; el.style.display = 'block';
+}
+
+/* ══════════════════════════════════════════════
+   NAVEGAÇÃO
+══════════════════════════════════════════════ */
+const NAV_TABS = ['agenda', 'calendar'];
+const NAV_RENDER = {
+  agenda:   () => renderAgenda(),
+  calendar: () => { renderCalendar(); renderCalSidebar(); },
+  setup:    () => renderSetup()
+};
+
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.btn-nav-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  const idx = NAV_TABS.indexOf(name);
+  if (idx >= 0) document.querySelectorAll('.header-nav .btn-nav-tab')[idx]?.classList.add('active');
+  if (name === 'setup') document.querySelector('.btn-nav-icon')?.classList.add('active');
+  (NAV_RENDER[name] || (() => {}))();
+}
+
+/* ══════════════════════════════════════════════
+   VIEWER — FULLSCREEN / CLOSE
+   Botão ⛶ alterna entre normal (740px) e
+   tela cheia (100vw/100vh com texto em A4).
+══════════════════════════════════════════════ */
+let _viewerState = 'normal'; // 'normal' | 'fullscreen'
+
+function toggleViewerExpand() {
+  const overlay = document.getElementById('modal-viewer');
+  const btn     = document.getElementById('btn-viewer-expand');
+  if (!overlay) return;
+
+  if (_viewerState === 'normal') {
+    _viewerState = 'fullscreen';
+    overlay.classList.add('viewer-fullscreen');
+    btn.textContent = '⊡';
+    btn.classList.add('active');
+    btn.title = 'Restaurar';
+  } else {
+    _viewerState = 'normal';
+    overlay.classList.remove('viewer-fullscreen');
+    btn.textContent = '⛶';
+    btn.classList.remove('active');
+    btn.title = 'Tela cheia';
+  }
+}
+
+function closeViewer() {
+  _viewerState = 'normal';
+  const overlay = document.getElementById('modal-viewer');
+  if (overlay) overlay.classList.remove('open', 'viewer-fullscreen');
+  const btn = document.getElementById('btn-viewer-expand');
+  if (btn) { btn.textContent = '⛶'; btn.classList.remove('active'); }
+}
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => {
+    if (e.target !== el) return;
+    if (el.id === 'modal-viewer') closeViewer();
+    else el.classList.remove('open');
+  });
+});
+
+/* ══════════════════════════════════════════════
+   TEMA
+══════════════════════════════════════════════ */
+function setTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  localStorage.setItem('ars_theme', t);
+  document.querySelectorAll('.theme-opt').forEach((el, i) => {
+    el.classList.toggle('active', ['default','dark','sepia'][i] === t);
+  });
+  toggleThemeFab();
+}
+
+function toggleThemeFab() {
+  document.getElementById('theme-fab-menu').classList.toggle('open');
+}
+
+document.addEventListener('click', e => {
+  const fab = document.getElementById('theme-fab');
+  if (!fab.contains(e.target)) document.getElementById('theme-fab-menu').classList.remove('open');
+});
+
+/* ══════════════════════════════════════════════
+   TOAST
+══════════════════════════════════════════════ */
+let toastTimer;
+function showToast(msg, type='info') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'show ' + type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.className = ''; }, 3500);
+}
+
+/* ══════════════════════════════════════════════
+   ESCAPE HTML
+══════════════════════════════════════════════ */
+function escHtml(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+/* ══════════════════════════════════════════════
+   LOG PANEL — Control functions
+══════════════════════════════════════════════ */
+function renderLogPanel() {
+  const body = document.getElementById('log-panel-body');
+  const countEl = document.getElementById('log-count');
+  if (!body || !countEl) return;
+  countEl.textContent = window.__ARS_LOGS.length;
+  body.innerHTML = window.__ARS_LOGS.map(l => '<div class="log-line log-' + l.level + '"><span class="log-ts">' + l.ts.substring(11,23) + '</span>' + escHtml(l.msg) + '</div>').join('');
+  body.scrollTop = body.scrollHeight;
+}
+function toggleLogPanel() {
+  const p = document.getElementById('log-panel');
+  p.classList.toggle('open');
+  if (p.classList.contains('open')) renderLogPanel();
+}
+async function copyAllLogs() {
+  const header = '=== ARS LOG ' + new Date().toISOString() + ' ===\nUserAgent: ' + navigator.userAgent + '\nDisciplines: ' + (STATE?.disciplines?.length || 0) + '\nTotal logs: ' + window.__ARS_LOGS.length + '\n---\n';
+  const body = window.__ARS_LOGS.map(l => '[' + l.ts + '] [' + l.level.toUpperCase() + '] ' + l.msg).join('\n');
+  const full = header + body;
+  try { await navigator.clipboard.writeText(full); } catch (e) {
+    const ta = document.createElement('textarea');
+    ta.value = full; ta.style.position='fixed'; ta.style.left='-9999px';
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+    document.body.removeChild(ta);
+  }
+  const btn = document.getElementById('btn-copy-logs');
+  const orig = btn.textContent;
+  btn.textContent = '✅ Copiado!'; btn.classList.add('copied');
+  setTimeout(() => { btn.textContent = orig; btn.classList.remove('copied'); }, 1500);
+  showToast('Logs copiados (' + window.__ARS_LOGS.length + ' linhas)', 'success');
+}
+function clearLogs() {
+  window.__ARS_LOGS.length = 0;
+  renderLogPanel();
+  showToast('Logs limpos.', 'info');
+}
+/* ══════════════════════════════════════════════
+   INIT
+══════════════════════════════════════════════ */
+(function init() {
+  loadState();
+
+  // Invalida token em cache — garante que o próximo uso gera um novo
+  // token com todos os scopes atuais (documents + drive + spreadsheets)
+  STATE.accessToken = null;
+  STATE.tokenExpiry = 0;
+
+  const savedTheme = localStorage.getItem('ars_theme') || 'default';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  document.querySelectorAll('.theme-opt').forEach((el, i) => {
+    el.classList.toggle('active', ['default','dark','sepia'][i] === savedTheme);
+  });
+
+  const t = today();
+  STATE.calYear  = t.getFullYear();
+  STATE.calMonth = t.getMonth();
+
+  // Fecha o viewer com Escape
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      const viewer = document.getElementById('modal-viewer');
+      if (viewer?.classList.contains('open')) closeViewer();
+    }
+  });
+
+  renderAgenda();
+})();
+</script>
+</body>
+</html>
