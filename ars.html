@@ -1197,6 +1197,7 @@ body {
   padding-bottom: 4px;
   border-bottom: 1px solid var(--border-input);
   line-height: 1.3;
+  white-space: pre-wrap;
 }
 .viewer-content .vc-heading:first-child { margin-top: 0; }
 .viewer-content .vc-h1 { font-size: 18px; }
@@ -1222,6 +1223,7 @@ body {
 .viewer-content .vc-bullet {
   position: relative;
   margin: 1px 0;
+  white-space: pre-wrap;
 }
 .viewer-content .vc-bullet::before {
   content: '•';
@@ -1231,7 +1233,7 @@ body {
 }
 
 /* ── Linha normal ────────────────────────── */
-.viewer-content .vc-line { margin: 1px 0; }
+.viewer-content .vc-line { margin: 1px 0; white-space: pre-wrap; }
 
 /* ── Espaçador ───────────────────────────── */
 .viewer-content .vc-spacer { height: 6px; }
@@ -1362,6 +1364,7 @@ body {
 .vc-popover .vc-cm-body {
   color: var(--text-primary);
   line-height: 1.6;
+  white-space: pre-wrap;
 }
 .viewer-content .vc-cm-reply,
 .vc-popover .vc-cm-reply {
@@ -1825,7 +1828,6 @@ body {
     <button class="btn-nav-tab" onclick="showScreen('calendar')">🗓️ Calendário</button>
   </nav>
   <div class="header-right">
-    <button class="btn-nav-tab btn-nav-icon" onclick="toggleLogPanel()" title="Logs">🐞</button>
     <button class="btn-sync" id="btn-sync" onclick="syncDocs()">
       <span class="sync-icon">🔄</span>
       <span class="sync-label">Sincronizar</span>
@@ -1997,6 +1999,17 @@ body {
         </div>
         <button class="btn-cache-clear" onclick="clearCache()">🗑️ Limpar cache completo</button>
       </div>
+    </div>
+
+    <!-- Card: Logs -->
+    <div class="setup-card">
+      <div class="setup-section-title">🐞 Logs do Sistema</div>
+      <div class="setup-section-sub">
+        Visualize os logs de sincronização e operações do sistema para depuração.
+      </div>
+      <button class="btn-save-setup" onclick="toggleLogPanel()" style="margin-top:12px;">
+        📋 Abrir painel de logs
+      </button>
     </div>
 
   </div>
@@ -2868,15 +2881,27 @@ async function fetchDocxComments(docId, token) {
         const id = cmt.getAttributeNS(W_NS, 'id');
         const author = cmt.getAttributeNS(W_NS, 'author') || 'Anônimo';
         const date = cmt.getAttributeNS(W_NS, 'date') || '';
-        let textParts = [];
         const pNodes = cmt.getElementsByTagNameNS(W_NS, 'p');
+        const paragraphTexts = [];
         for (let p = 0; p < pNodes.length; p++) {
-          const tNodes = pNodes[p].getElementsByTagNameNS(W_NS, 't');
-          for (let t = 0; t < tNodes.length; t++) {
-            textParts.push(tNodes[t].textContent || '');
-          }
+          const pEl = pNodes[p];
+          let paraText = '';
+          const walk = (node) => {
+            if (node.nodeType === Node.ELEMENT_NODE) {
+              if (node.namespaceURI === W_NS && node.localName === 't') {
+                paraText += node.textContent || '';
+              } else if (node.namespaceURI === W_NS && node.localName === 'tab') {
+                paraText += '\t';
+              } else if (node.namespaceURI === W_NS && node.localName === 'br') {
+                paraText += '\n';
+              }
+              for (let child = node.firstChild; child; child = child.nextSibling) walk(child);
+            }
+          };
+          walk(pEl);
+          paragraphTexts.push(paraText);
         }
-        const text = textParts.join('').trim();
+        const text = paragraphTexts.join('\n').replace(/\n{3,}/g, '\n\n').trim();
         commentsById[id] = { id, author, date, text, resolved: false };
       }
     }
@@ -3623,7 +3648,7 @@ async function openViewer(ev) {
           '<button class="vc-popover-close" onclick="this.closest(\'.vc-popover\').remove()">✕</button>',
           '</div>',
           quoted ? `<div class="vc-cm-quote">${quoted}</div>` : '',
-          `<div class="vc-cm-body">${escHtml(c.text)}</div>`
+          `<div class="vc-cm-body">${escHtml(c.text).replace(/\n/g, '<br>')}</div>`
         ].join('');
         const markRect = mark.getBoundingClientRect();
         const bodyRect = body.getBoundingClientRect();
