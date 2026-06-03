@@ -3549,14 +3549,47 @@ async function openViewer(ev) {
     const commentById = new Map();
     const schemaOk = cached?.schemaVersion === 2;
 
-    let anchorIdx = -1;
+    // --- Calcular ordinal do item entre irmãos (mesma discName + tabName + dateStr) ---
+    const siblings = STATE.items.filter(it =>
+      it.discName === item.discName &&
+      it.tabName === item.tabName &&
+      it.dateStr === item.dateStr
+    );
+    const ordinal = siblings.indexOf(item);
+
+    // --- Montar lista de candidatos (índices em paras que contêm a data) ---
+    const candidates = [];
     for (let i = 0; i < paras.length; i++) {
       if (paras[i].type !== 'table' && paras[i].plainText.includes(item.dateStr)) {
-        anchorIdx = i;
-        break;
+        candidates.push(i);
       }
     }
-    if (anchorIdx === -1) anchorIdx = 0;
+
+    let anchorIdx;
+    if (candidates.length === 0) {
+      anchorIdx = 0;
+    } else if (ordinal >= 0 && ordinal < candidates.length) {
+      anchorIdx = candidates[ordinal];
+    } else {
+      anchorIdx = candidates[candidates.length - 1];
+    }
+
+    // --- Desambiguação secundária: ordinal 0, múltiplos candidatos, mas apenas 1 irmão ---
+    if (ordinal === 0 && candidates.length > 1 && siblings.length === 1) {
+      const titleTokens = item.title.toUpperCase().split(/\s+/).filter(t => t.length >= 2);
+      let bestIdx = anchorIdx;
+      let bestScore = -1;
+      for (const ci of candidates) {
+        const nextCi = candidates.filter(c => c > ci).sort((a, b) => a - b)[0] || paras.length;
+        const blockText = paras.slice(ci, nextCi).map(n => n.plainText).join(' ').toUpperCase();
+        const score = titleTokens.filter(t => blockText.includes(t)).length;
+        if (score > bestScore) {
+          bestScore = score;
+          bestIdx = ci;
+        }
+      }
+      anchorIdx = bestIdx;
+    }
     let blockEnd = paras.length;
     for (let i = anchorIdx + 1; i < paras.length; i++) {
       const node = paras[i];
