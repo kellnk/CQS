@@ -1246,6 +1246,13 @@ body {
   border: 1px solid var(--border-input);
 }
 
+/* ── Imagens inline ────────────────────────── */
+.viewer-content .vc-image { display:block; margin:10px auto; border-radius:8px; max-width:100%; height:auto; box-shadow:var(--shadow-qcard); }
+.viewer-content .vc-image-missing { display:inline-block; padding:4px 10px; background:var(--bg-input); color:var(--text-secondary); border-radius:6px; font-size:12px; }
+/* Preservar cores originais em temas escuros */
+[data-theme="dark"] .viewer-content .vc-image,
+[data-theme="sepia"] .viewer-content .vc-image { filter:none; }
+
 .viewer-content .vc-table {
   width: 100%;
   border-collapse: collapse;
@@ -2499,13 +2506,14 @@ function extractParagraphsFromTab(tab) {
   const nodes = [];
   try {
     const content = tab.documentTab?.body?.content || [];
+    const inlineObjects = tab.documentTab?.inlineObjects || {};
+    const positionedObjects = tab.documentTab?.positionedObjects || {};
     for (const el of content) {
       if (el.paragraph) {
-        nodes.push(parseParagraph(el.paragraph));
+        nodes.push(parseParagraph(el.paragraph, false, inlineObjects, positionedObjects));
       }
       if (el.table) {
-        // Tabela preservada como objeto estruturado {type:'table', rows}
-        nodes.push(parseTable(el.table));
+        nodes.push(parseTable(el.table, inlineObjects, positionedObjects));
       }
     }
   } catch(e) { console.warn('extractParagraphsFromTab error', e); }
@@ -2514,7 +2522,7 @@ function extractParagraphsFromTab(tab) {
 
 // Converte uma table do GDocs numa estrutura renderizável
 // {type:'table', rows: [[{paras:[]}, ...], ...], plainText:''}
-function parseTable(table) {
+function parseTable(table, inlineObjects = {}, positionedObjects = {}) {
   const rows = [];
   let plainText = '';
   for (const row of table.tableRows || []) {
@@ -2523,7 +2531,7 @@ function parseTable(table) {
       const paras = [];
       for (const cel of cell.content || []) {
         if (cel.paragraph) {
-          const p = parseParagraph(cel.paragraph, true);
+          const p = parseParagraph(cel.paragraph, true, inlineObjects, positionedObjects);
           paras.push(p);
           plainText += p.plainText + ' ';
         }
@@ -2536,8 +2544,8 @@ function parseTable(table) {
 }
 
 // Converte um parágrafo do GDocs em estrutura interna rica.
-// spans = [{text, bold, italic, underline, strike, color, bgColor, fontSize}]
-function parseParagraph(paragraph, inTable = false) {
+// spans = [{text, bold, italic, underline, strike, color, bgColor, fontSize, isImage, objectId, contentUri, widthPt, heightPt, dataUrl}]
+function parseParagraph(paragraph, inTable = false, inlineObjects = {}, positionedObjects = {}) {
   const pStyle     = paragraph.paragraphStyle || {};
   const namedStyle = pStyle.namedStyleType || 'NORMAL_TEXT';
   const isGDocsHeading = namedStyle.startsWith('HEADING_');
@@ -2584,9 +2592,58 @@ function parseParagraph(paragraph, inTable = false) {
         bgColor:   style.backgroundColor?.color?.rgbColor   || null,
         fontSizePt,
       });
+    } else if (pe.inlineObjectElement) {
+      const objectId = pe.inlineObjectElement.inlineObjectId;
+      const obj = inlineObjects[objectId];
+      if (obj) {
+        const embedded = obj.inlineObjectProperties?.embeddedObject;
+        if (embedded) {
+          const contentUri = embedded.imageProperties?.contentUri || '';
+          const widthPt = embedded.size?.width?.magnitude || null;
+          const heightPt = embedded.size?.height?.magnitude || null;
+          const driveFileId = embedded.driveFile?.id || null;
+          spans.push({
+            isImage: true,
+            objectId,
+            contentUri,
+            widthPt,
+            heightPt,
+            driveFileId,
+            dataUrl: null,
+            text: ''
+          });
+        }
+      }
     }
     // Notas de rodapé e outros elementos inline — ignora o texto, mas não quebra
     // (footnoteReference, person, etc.)
+  }
+
+  // Imagens posicionadas (flutuantes/sobre o texto) — ancoradas neste parágrafo
+  if (paragraph.positionedObjectIds) {
+    for (const posId of paragraph.positionedObjectIds) {
+      const posObj = positionedObjects[posId];
+      if (!posObj) continue;
+      const embedded = posObj.positionedObjectProperties?.embeddedObject;
+      if (!embedded) continue;
+      const contentUri = embedded.imageProperties?.contentUri || '';
+      if (!contentUri) continue;
+      const widthPt = embedded.size?.width?.magnitude || null;
+      const heightPt = embedded.size?.height?.magnitude || null;
+      const layout = posObj.positionedObjectProperties?.positioning?.layout || 'WRAP_TEXT';
+      spans.push({
+        isImage: true,
+        isPositioned: true,
+        objectId: posId,
+        contentUri,
+        widthPt,
+        heightPt,
+        layout,
+        driveFileId: null,
+        dataUrl: null,
+        text: ''
+      });
+    }
   }
 
   return {
@@ -2604,9 +2661,46 @@ function parseParagraph(paragraph, inTable = false) {
   };
 }
 
+// Converte o layout da API Docs em parâmetros CSS de float
+function layoutToFloat(layout) {
+  if (layout === 'BREAK_RIGHT') return { floatSide: 'right', isBlock: false };
+  if (layout === 'BREAK_LEFT') return { floatSide: 'left', isBlock: false };
+  if (layout === 'BREAK_LEFT_RIGHT') return { floatSide: 'none', isBlock: true };
+  return { floatSide: 'right', isBlock: false };
+}
+
 // Converte um span em HTML com formatação completa
 function spansToHtml(spans) {
   return spans.map(s => {
+    if (s.isImage) {
+      if (s.isPositioned === true) {
+        const { floatSide, isBlock } = layoutToFloat(s.layout);
+        const wPx = s.widthPt ? Math.round(s.widthPt * 1.333) : 'auto';
+        let style = '';
+        if (isBlock) {
+          style = 'display:block;margin:8px auto;max-width:100%;border-radius:6px;';
+          if (wPx !== 'auto') style += `width:${wPx}px;`;
+        } else if (floatSide === 'right') {
+          style = 'display:block;float:right;margin:0 0 8px 12px;max-width:50%;border-radius:6px;';
+          if (wPx !== 'auto') style += `width:${wPx}px;`;
+        } else if (floatSide === 'left') {
+          style = 'display:block;float:left;margin:0 12px 8px 0;max-width:50%;border-radius:6px;';
+          if (wPx !== 'auto') style += `width:${wPx}px;`;
+        }
+        style += 'height:auto;';
+        const src = s.dataUrl || s.contentUri || '';
+        if (!src) return '<span class="vc-image-missing">🖼️ imagem não carregada</span>';
+        const fallbackAttr = !s.dataUrl ? ' data-fallback="missing"' : '';
+        return `<img class="vc-image vc-image-positioned"${fallbackAttr} referrerpolicy="no-referrer" src="${src}" style="${style}" loading="lazy" alt="">`;
+      }
+      const src = s.dataUrl || s.contentUri || '';
+      if (!src) return '<span class="vc-image-missing">🖼️ imagem não carregada</span>';
+      const w = s.widthPt ? Math.round(s.widthPt * 1.333) : 'auto';
+      if (s.dataUrl) {
+        return `<img class="vc-image" referrerpolicy="no-referrer" src="${src}" style="width:${w}px;max-width:100%;height:auto;" loading="lazy" alt="">`;
+      }
+      return `<img class="vc-image" data-fallback="missing" referrerpolicy="no-referrer" src="${src}" style="width:${w}px;max-width:100%;height:auto;" loading="lazy" alt="">`;
+    }
     let html = escHtml(s.text);
     if (s.bold)      html = `<strong>${html}</strong>`;
     if (s.italic)    html = `<em>${html}</em>`;
@@ -2670,7 +2764,7 @@ function tableToHtml(tableNode) {
 
 // Renderiza um único parágrafo em HTML
 function paragraphToHtml(p) {
-  if (!p.plainText.trim()) return '<div class="vc-spacer"></div>';
+  if (!p.plainText.trim() && !p.spans.some(s => s.isImage)) return '<div class="vc-spacer"></div>';
 
   const inner = spansToHtml(p.spans);
 
@@ -3097,7 +3191,42 @@ async function pMap(items, mapper, concurrency) {
   return results;
 }
 
-
+/**
+ * downloadImageAsDataUrl(contentUri, token, driveFileId)
+ * Baixa o binário de uma imagem e converte para data URL base64.
+ * Usa Drive API (files.get?alt=media) quando driveFileId está disponível (evita CORS).
+ * Fallback para contentUri direto se não houver driveFileId.
+ * Retorna string data:image/...;base64,... ou null.
+ */
+async function downloadImageAsDataUrl(contentUri, token, driveFileId = null) {
+  try {
+    let url;
+    if (driveFileId) {
+      url = `https://www.googleapis.com/drive/v3/files/${driveFileId}?alt=media`;
+    } else {
+      url = contentUri;
+    }
+    const resp = await fetch(url, { headers: { Authorization: 'Bearer ' + token } });
+    if (!resp.ok) {
+      console.warn('[ARS-IMG] download falhou:', resp.status, url.substring(0, 80));
+      return null;
+    }
+    const blob = await resp.blob();
+    if (blob.size > 2_000_000) {
+      console.warn('[ARS-IMG] imagem muito grande (' + blob.size + ' bytes), pulando:', url.substring(0, 80));
+      return null;
+    }
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(blob);
+    });
+  } catch (err) {
+    console.warn('[ARS-IMG] erro ao baixar imagem:', err.message);
+    return null;
+  }
+}
 
 /**
  * mapTabRangesToNodes(nodes, tabDocx)
@@ -3270,6 +3399,27 @@ async function syncDocs() {
           const tabId = tab.tabProperties?.tabId || '';
           const tabName = tab.tabProperties?.title || 'Sem título';
           const nodes = extractParagraphsFromTab(tab);
+          // Contar imagens (exibidas via URL direta, sem download — CORS bloqueou fetch)
+          const imgCount = (function countImages(nodes) {
+            let c = 0;
+            for (const n of nodes) {
+              if (n.type === 'table') {
+                for (const row of (n.rows || [])) {
+                  for (const cell of (row || [])) {
+                    for (const p of (cell || [])) {
+                      for (const s of (p.spans || [])) { if (s.isImage && s.contentUri) c++; }
+                    }
+                  }
+                }
+              } else {
+                for (const s of (n.spans || [])) { if (s.isImage && s.contentUri) c++; }
+              }
+            }
+            return c;
+          })(nodes);
+          if (imgCount > 0) {
+            console.log('[SYNC]', disc.name + '/' + tabName + ':', imgCount + ' imagem(ns) via URL direta');
+          }
           const plainText = nodes.map(n => n.plainText || '').join('\n');
           tabsData.push({ tabName, tabId, nodes, plainText, comments: [], commentsSyncStatus: 'pending' });
         }
@@ -3417,7 +3567,7 @@ function spansToHtmlWithMarks(spans, marks) {
   
   // Função para renderizar um span com marcações dentro dele
   const renderSpanWithMark = (span, spanStart, spanEnd, marksInSpan) => {
-    if (!marksInSpan.length) return spansToHtml([span]);
+    if (!marksInSpan.length || span.isImage) return spansToHtml([span]);
     
     let html = '';
     let cursor = spanStart;
@@ -3466,7 +3616,7 @@ function spansToHtmlWithMarks(spans, marks) {
  * Similar a paragraphToHtml, mas usa spansToHtmlWithMarks
  */
 function paragraphToHtmlWithMarks(p, marks) {
-  if (!p.plainText.trim()) return '<div class="vc-spacer"></div>';
+  if (!p.plainText.trim() && !p.spans.some(s => s.isImage)) return '<div class="vc-spacer"></div>';
 
   const inner = spansToHtmlWithMarks(p.spans, marks);
 
@@ -3475,11 +3625,11 @@ function paragraphToHtmlWithMarks(p, marks) {
   const alignMap = { CENTER: 'center', END: 'right', JUSTIFIED: 'justify' };
   const alignStyle = alignMap[p.align] ? `text-align:${alignMap[p.align]};` : '';
   const marginStyle = p.spaceAfterPt > 0 ? `margin-bottom:${Math.round(p.spaceAfterPt*1.333)}px;` : '';
-  const styleAttr = (indentStyle || alignStyle || marginStyle) ? ` style="${indentStyle}${alignStyle}${marginStyle}"` : '';
 
   if (p.isHeading) {
     const levelMap = {HEADING_1:'vc-h1',HEADING_2:'vc-h2',HEADING_3:'vc-h3',HEADING_4:'vc-h4',HEADING_5:'vc-h5',HEADING_6:'vc-h6'};
     const cls = levelMap[p.namedStyle] || 'vc-h3';
+    const styleAttr = (indentStyle || alignStyle || marginStyle) ? ` style="${indentStyle}${alignStyle}${marginStyle}"` : '';
     return `<div class="vc-heading ${cls}"${styleAttr}>${inner}</div>`;
   }
   if (/\d{2}\/\d{2}\/\d{4}/.test(p.plainText)) {
@@ -3490,6 +3640,7 @@ function paragraphToHtmlWithMarks(p, marks) {
     const totalPx = 18 + nestPx + indentPx;
     return `<div class="vc-bullet" style="padding-left:${totalPx}px;${alignStyle}${marginStyle}">${inner}</div>`;
   }
+  const styleAttr = (indentStyle || alignStyle || marginStyle) ? ` style="${indentStyle}${alignStyle}${marginStyle}"` : '';
   return `<div class="vc-line"${styleAttr}>${inner}</div>`;
 }
 
@@ -3660,6 +3811,22 @@ async function openViewer(ev) {
     }
     
     body.innerHTML = `<div class="viewer-content">${html || '<div class="viewer-error">Conteúdo não encontrado.</div>'}${commentsDiagHtml}</div>`;
+    
+    // Listener de erro para imagens com fallback
+    const imgFallbackHandler = img => {
+      const span = document.createElement('span');
+      span.className = 'vc-image-missing';
+      span.textContent = '🖼️ imagem não carregada';
+      img.replaceWith(span);
+    };
+    const fallbackImgs = body.querySelectorAll('img.vc-image[data-fallback]');
+    for (const img of fallbackImgs) {
+      if (img.complete && img.naturalWidth === 0) {
+        imgFallbackHandler(img);
+      } else {
+        img.addEventListener('error', () => imgFallbackHandler(img), { once: true });
+      }
+    }
     
     // Popover para comentários (event delegation)
     body.addEventListener('click', e => {
@@ -4368,7 +4535,7 @@ async function copyAllLogs() {
 function clearLogs() {
   window.__ARS_LOGS.length = 0;
   renderLogPanel();
-  showToast('Logs limpos.', 'info');
+  showToast('Logs limpos.', 'info');https://github.com/kellnk/CQS/blob/main/ars.html
 }
 /* ══════════════════════════════════════════════
    INIT
