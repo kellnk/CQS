@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="icon_ars.png">
+<link rel="apple-touch-icon" href="icon_ars.png">
 <title>ARS — Agenda de Revisão Espaçada</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <!-- JSZip CDN -->
@@ -3692,6 +3694,37 @@ async function openViewer(ev) {
       if (!tab) throw new Error(`Aba "${item.tabName}" não encontrada.`);
       paras = extractParagraphsFromTab(tab);
       await cacheSet(cacheKey, { nodes: paras, revisionId: '', savedAt: Date.now(), discName: disc.name, tabName: item.tabName });
+    }
+
+    // Download de imagens como dataUrl permanente (evita expiração do contentUri)
+    const imgSpans = [];
+    (function collectImgSpans(nodes) {
+      for (const n of nodes) {
+        if (n.type === 'table') {
+          for (const row of (n.rows || [])) {
+            for (const cell of (row || [])) {
+              for (const p of (cell || [])) {
+                for (const s of (p.spans || [])) { if (s.isImage && !s.dataUrl && (s.contentUri || s.driveFileId)) imgSpans.push(s); }
+              }
+            }
+          }
+        } else {
+          for (const s of (n.spans || [])) { if (s.isImage && !s.dataUrl && (s.contentUri || s.driveFileId)) imgSpans.push(s); }
+        }
+      }
+    })(paras);
+    if (imgSpans.length > 0) {
+      console.log('[ARS-IMG] Baixando', imgSpans.length, 'imagem(ns) para', item.tabName);
+      const dlToken = await ensureToken();
+      await pMap(imgSpans, async (s) => {
+        s.dataUrl = await downloadImageAsDataUrl(s.contentUri, dlToken, s.driveFileId);
+      }, 3);
+      const okN = imgSpans.filter(s => s.dataUrl).length;
+      console.log('[ARS-IMG] Download:', okN, 'ok,', imgSpans.length - okN, 'falha');
+      if (okN > 0) {
+        const existingCache = await cacheGet(cacheKey);
+        if (existingCache) await cacheSet(cacheKey, { ...existingCache, nodes: paras, savedAt: Date.now() });
+      }
     }
 
     // --- Comentários via cache (DOCX) ---
