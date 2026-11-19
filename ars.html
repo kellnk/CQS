@@ -290,6 +290,10 @@ body {
 .viewer-content .vc-image { display:block; margin:10px auto; border-radius:8px; max-width:100%; height:auto; box-shadow:var(--shadow-qcard); }
 .viewer-content .vc-image-loading { min-height:48px; min-width:48px; background:var(--bg-input); }
 .viewer-content .vc-image-missing { display:inline-block; padding:4px 10px; background:var(--bg-input); color:var(--text-secondary); border-radius:6px; font-size:12px; }
+/* Equações (MathML) */
+.viewer-content math { font-size:1.15em; font-family:'Latin Modern Math','STIX Two Math','Cambria Math','Noto Sans Math',math; }
+.viewer-content math[display="block"] { margin:10px 0; }
+.viewer-content .vc-eq-box { border:1px solid currentColor; padding:2px 4px; }
 .viewer-content .vc-table { width:100%; border-collapse:collapse; font-size:13px; line-height:1.5; }
 .viewer-content .vc-table th,.viewer-content .vc-table td { padding:7px 12px; border:1px solid var(--border-input); vertical-align:top; text-align:left; }
 .viewer-content .vc-table th { background:var(--bg-table-head); color:var(--text-header); font-weight:700; font-family:var(--mono); font-size:12px; }
@@ -717,7 +721,7 @@ const R_COLORS = [null, ...REVISIONS.map((_, i) => ({ c: `var(--r${i+1}-color)`,
 // Só linhas que parecem título de aula/mapeamento viram itens da agenda
 const ITEM_TITLE_RE = /AULA|MAPEAMENTO/i;
 // Versão do formato do cache (IndexedDB). Mudou → tudo é rebaixado no próximo sync.
-const SCHEMA_VERSION = 4;   // 4: imagens passam a ser salvas a partir do DOCX
+const SCHEMA_VERSION = 5;   // 4: imagens a partir do DOCX · 5: equações (OMML→MathML) a partir do DOCX
 
 function getInstrument(rNum, title) {
   if (/mapeamento/i.test(title)) return 'TODO O CONTEÚDO';
@@ -1001,6 +1005,9 @@ function parseParagraph(paragraph, inTable = false, inlineObjects = {}, position
         bgColor: style.backgroundColor?.color?.rgbColor || null,
         fontSizePt: style.fontSize?.magnitude || null,
       });
+    } else if (pe.equation) {
+      // A API devolve só o marcador; o conteúdo (mathml) é preenchido no sync a partir do DOCX.
+      spans.push({ isEquation: true, mathml: null, text: '' });
     } else if (pe.inlineObjectElement) {
       const objectId = pe.inlineObjectElement.inlineObjectId;
       const embedded = inlineObjects[objectId]?.inlineObjectProperties?.embeddedObject;
@@ -1055,8 +1062,12 @@ function imageTag(s, extraClass, style) {
   return `<img class="vc-image vc-image-loading${extraClass}"${src} data-object-id="${escHtml(s.objectId || '')}" data-uri="${escHtml(uri)}" referrerpolicy="no-referrer" style="${style}" alt="">`;
 }
 
-function spansToHtml(spans) {
+function spansToHtml(spans, eqBlock = false) {
   return spans.map(s => {
+    if (s.isEquation) {
+      if (!s.mathml) return '<span class="vc-image-missing" title="Equação não sincronizada — clique em Sincronizar">∑ equação</span>';
+      return `<math display="${eqBlock ? 'block' : 'inline'}">${s.mathml}</math>`;
+    }
     if (s.isImage) {
       const wPx = s.widthPt ? Math.round(s.widthPt * 1.333) : null;
       if (s.isPositioned === true) {
@@ -1106,7 +1117,7 @@ function tableToHtml(tableNode) {
     html += '<tr>';
     row.forEach(cellParas => {
       const cellHtml = cellParas
-        .filter(p => p.plainText.trim() || p.spans.some(s => s.isImage))
+        .filter(p => p.plainText.trim() || p.spans.some(s => s.isImage || s.isEquation))
         .map(p => {
           const inner = spansToHtml(p.spans);
           return p.hasBullet ? `<div class="vc-bullet-cell">• ${inner}</div>` : `<div>${inner}</div>`;
@@ -1120,9 +1131,11 @@ function tableToHtml(tableNode) {
 
 // Um único renderizador de parágrafo; `marks` é opcional (destaques de comentários)
 function paragraphToHtml(p, marks) {
-  if (!p.plainText.trim() && !p.spans.some(s => s.isImage)) return '<div class="vc-spacer"></div>';
+  if (!p.plainText.trim() && !p.spans.some(s => s.isImage || s.isEquation)) return '<div class="vc-spacer"></div>';
 
-  const inner = (marks && marks.length) ? spansToHtmlWithMarks(p.spans, marks) : spansToHtml(p.spans);
+  // Parágrafo que contém só equação(ões) → equação em bloco (centralizada)
+  const eqBlock = p.spans.some(s => s.isEquation) && p.spans.every(s => s.isEquation || (!s.isImage && !(s.text || '').trim()));
+  const inner = (marks && marks.length) ? spansToHtmlWithMarks(p.spans, marks) : spansToHtml(p.spans, eqBlock);
   const indentPx = Math.min(Math.round(p.indentPt * 1.333), 120);
   const indentStyle = indentPx > 0 ? `padding-left:${indentPx}px;` : '';
   const alignMap = { CENTER: 'center', END: 'right', JUSTIFIED: 'justify' };
@@ -1266,6 +1279,132 @@ const tabNameOf = tab => tab.tabProperties?.title || 'Sem título';
 ══════════════════════════════════════════════ */
 function normalizeText(s) { return s.replace(/\s+/g, ''); }
 
+/* ══════════════════════════════════════════════
+   EQUAÇÕES — OMML (DOCX) → MathML
+   A API do Docs devolve só um marcador vazio por equação; o conteúdo vem do DOCX exportado.
+   O resultado é o conteúdo interno de <math>…</math> (renderizado nativamente pelo navegador).
+══════════════════════════════════════════════ */
+const M_NS = 'http://schemas.openxmlformats.org/officeDocument/2006/math';
+const MATH_FUNCS = new Set(['sin','cos','tan','sen','tg','cotg','cot','sec','csc','log','ln','lim','exp','max','min','mod','det','arg','sup','inf','arcsin','arccos','arctan']);
+
+function ommlToMathML(oMath) {
+  const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const isM = el => el.namespaceURI === M_NS;
+  const mkids = el => Array.from(el.children);
+  const mchild = (el, name) => (el ? mkids(el).find(c => isM(c) && c.localName === name) : null) || null;
+  const mchildren = (el, name) => el ? mkids(el).filter(c => isM(c) && c.localName === name) : [];
+  const getVal = el => { if (!el) return null; for (const a of Array.from(el.attributes)) if (a.localName === 'val') return a.value; return null; };
+  const on = el => { if (!el) return false; const v = getVal(el); return v === null || !['0', 'off', 'false'].includes(v.toLowerCase()); };
+  const chrOf = (pr, tag, dflt) => { const c = pr ? mchild(pr, tag) : null; if (!c) return dflt; const v = getVal(c); return v === null ? dflt : v; };
+  const ACC = { '\u0302':'^', '\u0303':'~', '\u0304':'\u00AF', '\u0305':'\u00AF', '\u0307':'\u02D9', '\u0308':'\u00A8', '\u20D7':'\u2192', '\u0300':'`', '\u0301':'\u00B4', '\u030C':'\u02C7', '\u0306':'\u02D8' };
+  let plain = 0;   // >0 dentro de nome de função (sen, log…): letras em estilo normal
+
+  function kids(el) { return mkids(el).map(conv).join(''); }
+  function grp(el) { return '<mrow>' + (el ? kids(el) : '') + '</mrow>'; }
+
+  function run(el) {
+    const rPr = mchild(el, 'rPr');
+    const sty = rPr ? getVal(mchild(rPr, 'sty')) : null;
+    const nor = rPr ? on(mchild(rPr, 'nor')) : false;
+    let text = '';
+    for (const c of mkids(el)) if (c.localName === 't') text += c.textContent;
+    if (!text) return '';
+    if (nor) return `<mtext>${esc(text)}</mtext>`;
+    const variant = sty === 'b' ? 'bold' : sty === 'bi' ? 'bold-italic' : (sty === 'p' || plain > 0) ? 'normal' : null;
+    const va = variant ? ` mathvariant="${variant}"` : '';
+    let out = '', m;
+    const re = /(\d+(?:[.,]\d+)?)|(\p{L}+)|(\s+)|([\s\S])/gu;
+    while ((m = re.exec(text))) {
+      if (m[1]) out += `<mn>${esc(m[1])}</mn>`;
+      else if (m[2]) {
+        const w = m[2];
+        if (variant === 'normal' || (!variant && w.length > 1 && MATH_FUNCS.has(w.toLowerCase()))) out += `<mi mathvariant="normal">${esc(w)}</mi>`;
+        else for (const ch of w) out += `<mi${va}>${esc(ch)}</mi>`;
+      } else if (m[3]) { /* espaço: ignorado */ }
+      else out += `<mo>${esc(m[4])}</mo>`;
+    }
+    return out;
+  }
+
+  function conv(el) {
+    if (!isM(el)) return kids(el);          // wrappers não-math (w:ins, w:del…)
+    const n = el.localName;
+    if (n.endsWith('Pr')) return '';        // propriedades (fPr, dPr, rPr, ctrlPr…)
+    switch (n) {
+      case 'r': return run(el);
+      case 'f': {
+        const pr = mchild(el, 'fPr');
+        const type = pr ? getVal(mchild(pr, 'type')) : null;
+        const num = grp(mchild(el, 'num')), den = grp(mchild(el, 'den'));
+        if (type === 'lin' || type === 'skw') return `<mrow>${num}<mo>/</mo>${den}</mrow>`;
+        return type === 'noBar' ? `<mfrac linethickness="0">${num}${den}</mfrac>` : `<mfrac>${num}${den}</mfrac>`;
+      }
+      case 'sSub':    return `<msub>${grp(mchild(el, 'e'))}${grp(mchild(el, 'sub'))}</msub>`;
+      case 'sSup':    return `<msup>${grp(mchild(el, 'e'))}${grp(mchild(el, 'sup'))}</msup>`;
+      case 'sSubSup': return `<msubsup>${grp(mchild(el, 'e'))}${grp(mchild(el, 'sub'))}${grp(mchild(el, 'sup'))}</msubsup>`;
+      case 'sPre':    return `<mmultiscripts>${grp(mchild(el, 'e'))}<mprescripts/>${grp(mchild(el, 'sub'))}${grp(mchild(el, 'sup'))}</mmultiscripts>`;
+      case 'd': {
+        const pr = mchild(el, 'dPr');
+        const beg = chrOf(pr, 'begChr', '('), end = chrOf(pr, 'endChr', ')'), sep = chrOf(pr, 'sepChr', '|');
+        let out = beg ? `<mo>${esc(beg)}</mo>` : '';
+        mchildren(el, 'e').forEach((e, i) => { if (i && sep) out += `<mo separator="true">${esc(sep)}</mo>`; out += grp(e); });
+        if (end) out += `<mo>${esc(end)}</mo>`;
+        return `<mrow>${out}</mrow>`;
+      }
+      case 'rad': {
+        const pr = mchild(el, 'radPr');
+        const hide = pr ? on(mchild(pr, 'degHide')) : false;
+        const e = grp(mchild(el, 'e'));
+        return hide ? `<msqrt>${e}</msqrt>` : `<mroot>${e}${grp(mchild(el, 'deg'))}</mroot>`;
+      }
+      case 'nary': {
+        const pr = mchild(el, 'naryPr');
+        const chr = chrOf(pr, 'chr', '\u222B');
+        const limLoc = pr ? getVal(mchild(pr, 'limLoc')) : null;
+        const subHide = pr ? on(mchild(pr, 'subHide')) : false;
+        const supHide = pr ? on(mchild(pr, 'supHide')) : false;
+        const sub = subHide ? null : grp(mchild(el, 'sub'));
+        const sup = supHide ? null : grp(mchild(el, 'sup'));
+        const under = (limLoc || ('\u2211\u220F\u22C3\u22C2'.includes(chr) ? 'undOvr' : 'subSup')) === 'undOvr';
+        const op = `<mo largeop="true">${esc(chr)}</mo>`;
+        let built = op;
+        if (under) built = sub && sup ? `<munderover>${op}${sub}${sup}</munderover>` : sub ? `<munder>${op}${sub}</munder>` : sup ? `<mover>${op}${sup}</mover>` : op;
+        else built = sub && sup ? `<msubsup>${op}${sub}${sup}</msubsup>` : sub ? `<msub>${op}${sub}</msub>` : sup ? `<msup>${op}${sup}</msup>` : op;
+        return `<mrow>${built}${grp(mchild(el, 'e'))}</mrow>`;
+      }
+      case 'func': {
+        plain++; const fn = grp(mchild(el, 'fName')); plain--;
+        return `<mrow>${fn}<mo>&#x2061;</mo>${grp(mchild(el, 'e'))}</mrow>`;
+      }
+      case 'acc': {
+        const pr = mchild(el, 'accPr');
+        const c = chrOf(pr, 'chr', '\u0302');
+        return `<mover accent="true">${grp(mchild(el, 'e'))}<mo>${esc(ACC[c] || c)}</mo></mover>`;
+      }
+      case 'bar': {
+        const pr = mchild(el, 'barPr');
+        const pos = pr ? getVal(mchild(pr, 'pos')) : null;
+        const e = grp(mchild(el, 'e'));
+        return pos === 'bot' ? `<munder>${e}<mo>\u00AF</mo></munder>` : `<mover>${e}<mo>\u00AF</mo></mover>`;
+      }
+      case 'groupChr': {
+        const pr = mchild(el, 'groupChrPr');
+        const c = chrOf(pr, 'chr', '\u23DF'), pos = pr ? getVal(mchild(pr, 'pos')) : null;
+        const e = grp(mchild(el, 'e'));
+        return pos === 'top' ? `<mover>${e}<mo>${esc(c)}</mo></mover>` : `<munder>${e}<mo>${esc(c)}</mo></munder>`;
+      }
+      case 'limLow': return `<munder>${grp(mchild(el, 'e'))}${grp(mchild(el, 'lim'))}</munder>`;
+      case 'limUpp': return `<mover>${grp(mchild(el, 'e'))}${grp(mchild(el, 'lim'))}</mover>`;
+      case 'eqArr':  return `<mtable>${mchildren(el, 'e').map(e => `<mtr><mtd>${kids(e)}</mtd></mtr>`).join('')}</mtable>`;
+      case 'm':      return `<mtable>${mchildren(el, 'mr').map(mr => `<mtr>${mchildren(mr, 'e').map(e => `<mtd>${kids(e)}</mtd>`).join('')}</mtr>`).join('')}</mtable>`;
+      case 'borderBox': return `<mrow class="vc-eq-box">${grp(mchild(el, 'e'))}</mrow>`;
+      case 'phant':     return `<mphantom>${grp(mchild(el, 'e'))}</mphantom>`;
+      default: return kids(el);             // box, e, num, den, sub, sup, deg, lim, fName…
+    }
+  }
+  return kids(oMath);
+}
+
 async function fetchDocxComments(docId) {
   const defaultEmpty = { status: 'failed', commentsById: {}, commentRanges: {}, ordinalByRangeKey: {}, tabPlainText: '' };
   try {
@@ -1320,6 +1459,20 @@ async function fetchDocxComments(docId) {
         docxImages.push(blobByTarget[target]);
       }
     } catch (e) { console.warn('[ARS-IMG] extração de imagens do DOCX falhou:', e.message); }
+
+    // Equações (OMML) do DOCX, na ordem do documento → MathML. Mapeadas depois, por ordem, aos
+    // marcadores "equation" da API do Docs (que não trazem conteúdo).
+    const docxEquations = [];
+    try {
+      const allMath = documentDoc.getElementsByTagNameNS(M_NS, 'oMath');
+      for (let i = 0; i < allMath.length; i++) {
+        let p = allMath[i].parentNode, nested = false;
+        while (p && p.nodeType === 1) { if (p.namespaceURI === M_NS && p.localName === 'oMath') { nested = true; break; } p = p.parentNode; }
+        if (nested) continue;
+        try { docxEquations.push(ommlToMathML(allMath[i])); }
+        catch (e) { console.warn('[ARS-EQ] falha ao converter equação', i, e.message); docxEquations.push(null); }
+      }
+    } catch (e) { console.warn('[ARS-EQ] extração de equações do DOCX falhou:', e.message); }
 
     const commentsById = {};
     if (commentsDoc) {
@@ -1405,8 +1558,8 @@ async function fetchDocxComments(docId) {
     }
     const ranges = Object.keys(filteredRanges).length;
     console.log('[ARS-COMMENTS] parse: total=' + Object.keys(commentsById).length + ' ranges=' + ranges);
-    if (ranges === 0) return { status: 'no-comments', commentsById: {}, commentRanges: {}, ordinalByRangeKey: {}, tabPlainText, docxImages };
-    return { status: 'ok', commentsById, commentRanges: filteredRanges, ordinalByRangeKey, tabPlainText, docxImages };
+    if (ranges === 0) return { status: 'no-comments', commentsById: {}, commentRanges: {}, ordinalByRangeKey: {}, tabPlainText, docxImages, docxEquations };
+    return { status: 'ok', commentsById, commentRanges: filteredRanges, ordinalByRangeKey, tabPlainText, docxImages, docxEquations };
   } catch (err) {
     console.error('[ARS-COMMENTS] fetchDocxComments error:', err);
     return defaultEmpty;
@@ -1613,6 +1766,23 @@ async function syncDocs() {
           if (n.type === 'table') n.rows.forEach(row => row.forEach(cell => cell.forEach(p => (p.spans || []).forEach(takeId))));
           else (n.spans || []).forEach(takeId);
         }
+        // Equações: a API só dá marcadores; o conteúdo (MathML) vem do DOCX, mapeado por ordem de aparição.
+        const apiEqSpans = [];
+        const takeEq = s => { if (s.isEquation) apiEqSpans.push(s); };
+        for (const td of tabsData) for (const n of td.nodes) {
+          if (n.type === 'table') n.rows.forEach(row => row.forEach(cell => cell.forEach(p => (p.spans || []).forEach(takeEq))));
+          else (n.spans || []).forEach(takeEq);
+        }
+        const docxEqs = commentResult.docxEquations || [];
+        if (apiEqSpans.length || docxEqs.length) {
+          if (docxEqs.length === apiEqSpans.length) {
+            apiEqSpans.forEach((s, i) => { s.mathml = docxEqs[i] || null; });
+            console.log(`[ARS-EQ] ${disc.name}: ${apiEqSpans.length} equações mapeadas a partir do DOCX`);
+          } else {
+            console.warn(`[ARS-EQ] ${disc.name}: ${apiEqSpans.length} equações na API vs ${docxEqs.length} no DOCX — não foi possível mapear`);
+          }
+        }
+
         const docxImgs = commentResult.docxImages || [];
         if (apiImgIds.length) {
           if (docxImgs.length === apiImgIds.length) {
@@ -1726,7 +1896,7 @@ function spansToHtmlWithMarks(spans, marks) {
   const sortedMarks = [...marks].sort((a,b) => a.startCharInNode - b.startCharInNode);
 
   const renderSpanWithMark = (span, spanStart, spanEnd, marksInSpan) => {
-    if (!marksInSpan.length || span.isImage) return spansToHtml([span]);
+    if (!marksInSpan.length || span.isImage || span.isEquation) return spansToHtml([span]);
     let html = '';
     let cursor = spanStart;
     for (const m of marksInSpan) {
