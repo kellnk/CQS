@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/png" href="icon_ars.png">
 <link rel="apple-touch-icon" href="icon_ars.png">
-<title>ARS V8.1 — Agenda de Revisão Espaçada</title>
+<title>ARS — Agenda de Revisão Espaçada V8.2</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
@@ -171,7 +171,6 @@ body {
 .freq-group { margin-bottom:28px; }
 .freq-group-header { display:flex; align-items:center; gap:12px; margin-bottom:12px; padding:0 4px; }
 .freq-badge { padding:5px 14px; border-radius:20px; font-family:var(--mono); font-size:13px; font-weight:700; flex-shrink:0; }
-.freq-instrument { font-size:12px; color:var(--text-secondary); font-weight:600; background:var(--bg-input); padding:4px 10px; border-radius:8px; font-family:var(--mono); }
 
 .item-card { border-radius:12px; padding:12px 16px; margin-bottom:6px; border-left:4px solid transparent; display:flex; align-items:center; justify-content:space-between; gap:14px; transition:filter 0.15s,transform 0.15s; cursor:pointer; }
 .item-card:hover { transform:translateX(3px); filter:brightness(0.96); }
@@ -400,6 +399,31 @@ body {
 .sheets-sync-status.error { background:var(--red-light); color:var(--red); }
 .sheets-sync-status.info { background:var(--blue-light); color:var(--blue); }
 
+/* ══════════ CONFIG DE REVISÕES ══════════ */
+.rev-head,.rev-row { display:grid; grid-template-columns:34px minmax(110px,1.4fr) 108px minmax(140px,1fr) 104px; gap:8px; align-items:center; }
+.rev-head { padding:0 12px 6px; font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-label); }
+.rev-list { display:flex; flex-direction:column; gap:8px; margin-bottom:14px; }
+.rev-row { padding:10px 12px; background:var(--bg-input); border:1.5px solid var(--border-input); border-radius:12px; }
+.rev-row .setup-input { margin:0; padding:8px 10px; font-size:13px; min-width:0; }
+.rev-row select.setup-input { cursor:pointer; font-family:var(--serif); }
+.rev-chip { width:30px; height:30px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:12px; font-weight:700; border:1.5px solid currentColor; }
+.rev-days { display:flex; align-items:center; gap:6px; min-width:0; }
+.rev-days .setup-input { width:100%; }
+.rev-days span { font-family:var(--mono); font-size:12px; color:var(--text-secondary); }
+.rev-actions { display:flex; gap:4px; justify-content:flex-end; }
+.rev-btn { width:30px; height:30px; border-radius:8px; border:1.5px solid var(--border-input); background:transparent; color:var(--text-secondary); cursor:pointer; font-size:14px; display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
+.rev-btn:hover:not(:disabled) { border-color:var(--blue-mid); color:var(--blue-mid); background:var(--blue-light); }
+.rev-btn.rev-del:hover:not(:disabled) { border-color:var(--red); color:var(--red); background:var(--red-light); }
+.rev-btn:disabled { opacity:0.35; cursor:default; }
+.rev-count { font-family:var(--mono); font-size:12px; color:var(--text-secondary); margin:10px 2px 0; }
+.btn-rev-restore { margin-top:12px; padding:10px 18px; border-radius:10px; border:1.5px solid var(--border-input); background:transparent; color:var(--text-secondary); font-family:var(--serif); font-size:13px; font-weight:600; cursor:pointer; transition:all 0.2s; }
+.btn-rev-restore:hover { border-color:var(--blue-mid); color:var(--blue-mid); background:var(--blue-light); }
+@media (max-width:600px) {
+  .rev-head { display:none; }
+  .rev-row { grid-template-columns:34px 1fr 108px; }
+  .rev-row .rev-scope,.rev-row .rev-actions { grid-column:1 / -1; }
+}
+
 /* ══════════ LOGS ══════════ */
 .log-panel { position:fixed; bottom:90px; right:24px; width:min(560px,90vw); height:min(420px,70vh); background:var(--bg-card); border:1.5px solid var(--border-input); border-radius:14px; box-shadow:0 12px 48px rgba(0,0,0,0.4); display:none; flex-direction:column; z-index:9997; overflow:hidden; }
 .log-panel.open { display:flex; }
@@ -422,7 +446,7 @@ body {
 
 <header class="app-header">
   <div class="header-left">
-    <div class="header-logo">ARS V8.1 <span>Agenda de Revisão Espaçada</span></div>
+    <div class="header-logo">ARS <span>Agenda de Revisão Espaçada V8.2</span></div>
   </div>
   <nav class="header-nav">
     <button class="btn-nav-tab active" onclick="showScreen('agenda')">📅 Hoje</button>
@@ -528,6 +552,21 @@ body {
     </div>
 
     <div class="setup-card">
+      <div class="setup-section-title">🔁 Revisões</div>
+      <div class="setup-section-sub">
+        Defina quantas revisões fazer (até 8), o nome de cada uma, o período em <strong>dias</strong> contados a partir da data da aula
+        (ex.: 6 meses = 180 dias) e o que revisar. A ordem da lista define a ordem e a cor na agenda.
+        Aulas de <strong>MAPEAMENTO</strong> sempre mostram "Todo o conteúdo".
+      </div>
+      <div class="rev-head"><span></span><span>Nome</span><span>Período (dias)</span><span>O que revisar</span><span></span></div>
+      <div class="rev-list" id="rev-list"></div>
+      <button class="btn-add-disc" id="btn-add-rev" onclick="revAdd()"><span>＋</span> Adicionar revisão</button>
+      <div class="rev-count" id="rev-count"></div>
+      <button class="btn-save-setup" onclick="saveRevisions()">💾 Salvar revisões</button>
+      <button class="btn-rev-restore" onclick="revRestoreDefault()">↺ Restaurar padrão</button>
+    </div>
+
+    <div class="setup-card">
       <div class="setup-section-title">📚 Disciplinas</div>
       <div class="setup-section-sub">
         Cadastre cada disciplina com o nome completo, a sigla (código) e o ID do Google Doc.<br>
@@ -540,8 +579,9 @@ body {
       <div class="sheets-sync-section">
         <div class="sheets-sync-title">☁️ Sincronizar com Google Sheets</div>
         <div class="sheets-sync-sub">
-          Mantenha as disciplinas espelhadas em uma planilha Google Sheets.
-          A aba <code>disciplinas</code> deve ter cabeçalho: Nome | Sigla | DocID.
+          Mantenha as disciplinas e as revisões espelhadas em uma planilha Google Sheets (útil para levar a configuração ao celular).
+          A aba <code>disciplinas</code> tem o cabeçalho Nome | Sigla | DocID e a aba <code>revisoes</code> tem Nome | Dias | Escopo.
+          As duas são criadas automaticamente se não existirem.
         </div>
         <div class="sheets-sync-row">
           <input type="text" class="setup-input" id="sheets-id-input" placeholder="ID da planilha (da URL do Sheets)" style="flex:1;margin:0;" value="">
@@ -699,34 +739,57 @@ window.fetch = async function(input, init) {
 };
 
 /* ══════════════════════════════════════════════
-   CONSTANTES — CICLO DE REVISÕES
-   24h · 7d · 21d · 2m · 4m · 10m · 16m · 22m
-   Meses = múltiplos de 30 dias (2 meses = 60 dias, etc.).
+   CICLO DE REVISÕES — configurável em Configurações
+   Cada revisão: { name, days, scope }.  Período sempre em DIAS (6 meses = 180).
+   scope: 'all' = todo o conteúdo · 'sr30' = apenas SR30.
+   A posição na lista (1..8) define a ordem e a cor (--r1..--r8).
 ══════════════════════════════════════════════ */
-const REVISIONS = [
-  { label: '24 HORAS',  short: '24H', days: 1 },
-  { label: '7 DIAS',    short: '7D',  days: 7 },
-  { label: '21 DIAS',   short: '21D', days: 21 },
-  { label: '2 MESES',   short: '2M',  days: 60 },
-  { label: '4 MESES',   short: '4M',  days: 120 },
-  { label: '10 MESES',  short: '10M', days: 300 },
-  { label: '16 MESES',  short: '16M', days: 480 },
-  { label: '22 MESES',  short: '22M', days: 660 }
+const MAX_REVISIONS = 8;
+const MAX_REVISION_DAYS = 3650;
+const DEFAULT_REVISIONS = [
+  { name: '24 HORAS', days: 1,   scope: 'all'  },
+  { name: '7 DIAS',   days: 7,   scope: 'sr30' },
+  { name: '1 MÊS',    days: 30,  scope: 'sr30' },
+  { name: '6 MESES',  days: 180, scope: 'all'  }
 ];
-// Índice 1..N (R1..R8)
-const REVISION_LABELS = [null, ...REVISIONS.map(r => r.label)];
-const REVISION_LABELS_SHORT = [null, ...REVISIONS.map(r => r.short)];
-const R_COLORS = [null, ...REVISIONS.map((_, i) => ({ c: `var(--r${i+1}-color)`, bg: `var(--r${i+1}-bg)` }))];
+const SCOPE_BADGE = { all: 'TODO O CONTEÚDO', sr30: 'SR30' };      // selo nos cards
+const SCOPE_OPTION = { all: 'Todo o conteúdo', sr30: 'Apenas SR30' }; // texto no select / planilha
+
+// Derivados (índice 1..N = R1..RN). REVISION_LABELS já vem escapado: só é usado em HTML.
+let REVISIONS = [];
+let REVISION_LABELS = [null];
+let R_COLORS = [null];
+
+// Valida/normaliza uma lista vinda do localStorage, da planilha ou do editor. Retorna [] se nada servir.
+function normalizeRevisions(raw) {
+  if (!Array.isArray(raw)) return [];
+  const out = [];
+  for (const r of raw) {
+    const name = String(r?.name ?? '').trim().slice(0, 30);
+    const days = Number(r?.days);
+    if (!name || !Number.isInteger(days) || days < 1 || days > MAX_REVISION_DAYS) continue;
+    out.push({ name, days, scope: r?.scope === 'sr30' ? 'sr30' : 'all' });
+    if (out.length >= MAX_REVISIONS) break;
+  }
+  return out;
+}
+
+function applyRevisions(list) {
+  REVISIONS = list.map(r => ({ label: r.name, days: r.days, scope: r.scope }));
+  REVISION_LABELS = [null, ...list.map(r => escHtml(r.name))];
+  R_COLORS = [null, ...list.map((_, i) => ({ c: `var(--r${i+1}-color)`, bg: `var(--r${i+1}-bg)` }))];
+}
+applyRevisions(DEFAULT_REVISIONS);
 
 // Só linhas que parecem título de aula/mapeamento viram itens da agenda
 const ITEM_TITLE_RE = /AULA|MAPEAMENTO/i;
 // Versão do formato do cache (IndexedDB). Mudou → tudo é rebaixado no próximo sync.
 const SCHEMA_VERSION = 5;   // 4: imagens a partir do DOCX · 5: equações (OMML→MathML) a partir do DOCX
 
+// Selo exibido nos cards. MAPEAMENTO sempre = todo o conteúdo; o resto segue a config da revisão.
 function getInstrument(rNum, title) {
-  if (/mapeamento/i.test(title)) return 'TODO O CONTEÚDO';
-  if (rNum === 1) return 'ERR + SR30';
-  return 'SR30';
+  if (/mapeamento/i.test(title)) return SCOPE_BADGE.all;
+  return SCOPE_BADGE[REVISIONS[rNum - 1]?.scope] || SCOPE_BADGE.all;
 }
 
 function getDiscCode(discName) {
@@ -748,6 +811,8 @@ function truncateTitle(title) {
 let STATE = {
   disciplines: [],     // [{name, code, docId}]
   removedDocIds: [],   // docIds removidos localmente (para o merge com Sheets não ressuscitá-los)
+  revisions: DEFAULT_REVISIONS.map(r => ({ ...r })),   // [{name, days, scope}]
+  revisionsUpdatedAt: 0,                               // ms; 0 = nunca personalizado neste aparelho
   saJson: '',
   sheetsId: '',
   items: [],           // [{id, discName, tabId, tabName, title, dateStr, dateObj, lineIndex}]
@@ -892,6 +957,8 @@ function saveState() {
   localStorage.setItem('ars_removed', JSON.stringify(STATE.removedDocIds));
   localStorage.setItem('ars_sajson', STATE.saJson);
   localStorage.setItem('ars_sheetsid', STATE.sheetsId);
+  localStorage.setItem('ars_revisions', JSON.stringify(STATE.revisions));
+  localStorage.setItem('ars_revisions_ts', String(STATE.revisionsUpdatedAt || 0));
   localStorage.setItem('ars_items', JSON.stringify(STATE.items.map(({ dateObj, ...rest }) => rest)));
 }
 
@@ -908,6 +975,18 @@ function loadState() {
       .map(it => ({ ...it, dateObj: parseDateBR(it.dateStr) }))
       .filter(it => it.dateObj);
   } catch(e) { console.warn('loadState error', e); }
+
+  // Revisões em bloco próprio: um erro acima não pode impedir de carregar a configuração
+  try {
+    const saved = normalizeRevisions(JSON.parse(localStorage.getItem('ars_revisions') || 'null'));
+    STATE.revisions = saved.length ? saved : DEFAULT_REVISIONS.map(r => ({ ...r }));
+    STATE.revisionsUpdatedAt = Number(localStorage.getItem('ars_revisions_ts')) || 0;
+  } catch(e) {
+    console.warn('loadState revisões error', e);
+    STATE.revisions = DEFAULT_REVISIONS.map(r => ({ ...r }));
+    STATE.revisionsUpdatedAt = 0;
+  }
+  applyRevisions(STATE.revisions);
 }
 
 /* ══════════════════════════════════════════════
@@ -916,13 +995,6 @@ function loadState() {
 function today() { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
 function dateKey(d) { return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
 function addDays(d, n) { const r = new Date(d); r.setDate(r.getDate() + n); return r; }
-
-// Soma meses de calendário; se o dia não existe no mês destino (ex.: 31/12 + 2m), usa o último dia.
-function addMonths(d, n) {
-  const target = new Date(d.getFullYear(), d.getMonth() + n, 1);
-  const last = new Date(target.getFullYear(), target.getMonth() + 1, 0).getDate();
-  return new Date(target.getFullYear(), target.getMonth(), Math.min(d.getDate(), last));
-}
 
 function revisionDate(base, rev) {
   return addDays(base, rev.days);
@@ -2229,7 +2301,6 @@ function renderAgenda() {
       <div class="freq-group">
         <div class="freq-group-header">
           <span class="freq-badge" style="background:${col.bg};color:${col.c}">${REVISION_LABELS[rNum]}</span>
-          <span class="freq-instrument">${escHtml(getInstrument(rNum, evs[0].item.title))}</span>
           <span style="font-size:12px;color:var(--text-secondary)">${evs.length} item${evs.length>1?'s':''}</span>
         </div>`;
     for (const ev of evs) {
@@ -2346,7 +2417,107 @@ function renderSetup() {
         <button class="btn-disc-remove" onclick="removeDisc(${i})" title="Remover">✕</button>
       </div>`).join('');
   }
+  renderRevisionsEditor(true);
   renderCacheStats();
+}
+
+/* ══════════════════════════════════════════════
+   EDITOR DE REVISÕES (Configurações)
+   Trabalha sobre um rascunho (REV_DRAFT); só vale depois de "Salvar revisões".
+══════════════════════════════════════════════ */
+let REV_DRAFT = [];
+
+function renderRevisionsEditor(reset) {
+  const el = document.getElementById('rev-list');
+  if (!el) return;
+  if (reset) REV_DRAFT = STATE.revisions.map(r => ({ ...r }));
+  el.innerHTML = REV_DRAFT.map((r, i) => `
+    <div class="rev-row">
+      <div class="rev-chip" style="background:var(--r${i+1}-bg);color:var(--r${i+1}-color)">${i+1}</div>
+      <input type="text" class="setup-input" maxlength="30" placeholder="Ex: 1 MÊS" value="${escHtml(r.name)}"
+             oninput="revEdit(${i},'name',this.value)" aria-label="Nome da revisão ${i+1}">
+      <div class="rev-days">
+        <input type="number" class="setup-input" min="1" max="${MAX_REVISION_DAYS}" step="1" inputmode="numeric" placeholder="0" value="${escHtml(r.days)}"
+               oninput="revEdit(${i},'days',this.value)" aria-label="Período em dias da revisão ${i+1}">
+        <span>dias</span>
+      </div>
+      <select class="setup-input rev-scope" onchange="revEdit(${i},'scope',this.value)" aria-label="O que revisar na revisão ${i+1}">
+        <option value="all"${r.scope === 'all' ? ' selected' : ''}>${SCOPE_OPTION.all}</option>
+        <option value="sr30"${r.scope === 'sr30' ? ' selected' : ''}>${SCOPE_OPTION.sr30}</option>
+      </select>
+      <div class="rev-actions">
+        <button class="rev-btn" onclick="revMove(${i},-1)" title="Subir"${i === 0 ? ' disabled' : ''}>↑</button>
+        <button class="rev-btn" onclick="revMove(${i},1)" title="Descer"${i === REV_DRAFT.length - 1 ? ' disabled' : ''}>↓</button>
+        <button class="rev-btn rev-del" onclick="revRemove(${i})" title="Remover"${REV_DRAFT.length <= 1 ? ' disabled' : ''}>✕</button>
+      </div>
+    </div>`).join('');
+  const add = document.getElementById('btn-add-rev');
+  if (add) add.style.display = REV_DRAFT.length >= MAX_REVISIONS ? 'none' : 'flex';
+  const cnt = document.getElementById('rev-count');
+  if (cnt) cnt.textContent = `${REV_DRAFT.length} de ${MAX_REVISIONS} revisões`;
+}
+
+// Edição de campo: NÃO re-renderiza (senão o input perde o foco a cada tecla)
+function revEdit(i, field, value) { if (REV_DRAFT[i]) REV_DRAFT[i][field] = value; }
+function revMove(i, dir) {
+  const j = i + dir;
+  if (j < 0 || j >= REV_DRAFT.length) return;
+  [REV_DRAFT[i], REV_DRAFT[j]] = [REV_DRAFT[j], REV_DRAFT[i]];
+  renderRevisionsEditor(false);
+}
+function revRemove(i) {
+  if (REV_DRAFT.length <= 1) return;
+  REV_DRAFT.splice(i, 1);
+  renderRevisionsEditor(false);
+}
+function revAdd() {
+  if (REV_DRAFT.length >= MAX_REVISIONS) { showToast(`Limite de ${MAX_REVISIONS} revisões.`, 'error'); return; }
+  REV_DRAFT.push({ name: '', days: '', scope: 'all' });
+  renderRevisionsEditor(false);
+  const inputs = document.querySelectorAll('#rev-list .rev-row:last-child input');
+  if (inputs[0]) inputs[0].focus();
+}
+
+function saveRevisions() {
+  if (!REV_DRAFT.length) { showToast('Mantenha pelo menos uma revisão.', 'error'); return; }
+  const out = [];
+  for (let i = 0; i < REV_DRAFT.length; i++) {
+    const r = REV_DRAFT[i];
+    const name = String(r.name ?? '').trim();
+    const days = Number(String(r.days ?? '').trim());
+    if (!name) { showToast(`Revisão ${i+1}: informe o nome.`, 'error'); return; }
+    if (String(r.days ?? '').trim() === '' || !Number.isInteger(days) || days < 1 || days > MAX_REVISION_DAYS) {
+      showToast(`Revisão ${i+1}: o período deve ser um número inteiro de dias (1 a ${MAX_REVISION_DAYS}).`, 'error'); return;
+    }
+    out.push({ name, days, scope: r.scope === 'sr30' ? 'sr30' : 'all' });
+  }
+  const dup = out.find((r, i) => out.findIndex(x => x.days === r.days) !== i);
+  if (dup) { showToast(`Há duas revisões com ${dup.days} dias. Use períodos diferentes.`, 'error'); return; }
+  commitRevisions(out);
+  showToast('✅ Revisões salvas!', 'success');
+}
+
+function revRestoreDefault() {
+  if (!confirm('Restaurar as revisões padrão (24 horas, 7 dias, 1 mês e 6 meses)? Sua configuração atual será substituída.')) return;
+  commitRevisions(DEFAULT_REVISIONS.map(r => ({ ...r })));
+  showToast('Revisões padrão restauradas.', 'info');
+}
+
+// Aplica a nova lista: salva, recalcula agenda/calendário na hora e espelha no Sheets (se configurado)
+function commitRevisions(list) {
+  STATE.revisions = list.map(r => ({ name: r.name, days: r.days, scope: r.scope }));
+  STATE.revisionsUpdatedAt = Date.now();
+  applyRevisions(STATE.revisions);
+  saveState();
+  renderRevisionsEditor(true);
+  renderAgenda();
+  renderCalendar();
+  renderCalSidebar();
+  if (STATE.sheetsId && STATE.saJson) {
+    const inp = document.getElementById('sheets-id-input');
+    if (inp) inp.value = STATE.sheetsId;
+    syncSheets().catch(e => showToast('Falha ao espelhar revisões no Sheets: ' + e.message, 'error'));
+  }
 }
 
 async function renderCacheStats() {
@@ -2519,7 +2690,7 @@ async function syncSheets() {
     // Lê primeiro; só cria a aba se ela não existir (evita o erro 400 "already exists" a cada sync)
     let readResp = await authFetch(`${baseUrl}/${encodeURIComponent('disciplinas!A1:C')}`);
     if (!readResp.ok) {
-      await ensureSheetsTab(sheetsId);
+      await ensureSheetsTab(sheetsId, 'disciplinas');
       readResp = await authFetch(`${baseUrl}/${encodeURIComponent('disciplinas!A1:C')}`);
     }
     const sheetsDiscs = [];
@@ -2555,10 +2726,22 @@ async function syncSheets() {
     STATE.disciplines = merged;
     STATE.removedDocIds = [];   // planilha já não contém os removidos
     saveState();
+
+    // Revisões (aba "revisoes"): falha aqui não desfaz o que já foi sincronizado nas disciplinas
+    let revMsg = '', revFailed = false;
+    try {
+      const rv = await syncRevisionsSheet(baseUrl, sheetsId);
+      revMsg = { pull: ' Revisões importadas da planilha.', push: ' Revisões enviadas para a planilha.', same: ' Revisões já estavam iguais.' }[rv] || '';
+      if (rv === 'pull') { renderAgenda(); renderCalendar(); renderCalSidebar(); }
+    } catch (e) {
+      revFailed = true;
+      revMsg = ` ⚠️ Revisões não sincronizadas: ${e.message}`;
+    }
+
     renderSetup();
-    showSheetsStatus(added > 0
+    showSheetsStatus((added > 0
       ? `✅ Sincronizado! ${added} disciplina${added>1?'s':''} importada${added>1?'s':''}. Total: ${merged.length}.`
-      : `✅ Sincronizado! ${merged.length} disciplina${merged.length!==1?'s':''} na planilha. Nenhuma novidade.`, 'success');
+      : `✅ Sincronizado! ${merged.length} disciplina${merged.length!==1?'s':''} na planilha. Nenhuma novidade.`) + revMsg, revFailed ? 'error' : 'success');
   } catch(e) {
     showSheetsStatus('Erro: ' + e.message, 'error');
     throw e;
@@ -2567,11 +2750,63 @@ async function syncSheets() {
   }
 }
 
-async function ensureSheetsTab(sheetsId) {
+/**
+ * Aba "revisoes": A=Nome | B=Dias | C=Escopo | E=AtualizadoEm (ISO, na 1ª linha de dados).
+ * Quem vence: o lado com data de alteração mais recente. Aparelho nunca personalizado
+ * (revisionsUpdatedAt = 0) sempre importa o que a planilha tiver.
+ * Retorna 'pull' (planilha → local), 'push' (local → planilha) ou 'same'.
+ */
+async function syncRevisionsSheet(baseUrl, sheetsId) {
+  const TAB = 'revisoes', RANGE = 'revisoes!A1:E';
+  let resp = await authFetch(`${baseUrl}/${encodeURIComponent(RANGE)}`);
+  if (!resp.ok) {
+    await ensureSheetsTab(sheetsId, TAB);
+    resp = await authFetch(`${baseUrl}/${encodeURIComponent(RANGE)}`);
+  }
+  let sheetRevs = [], sheetTs = 0;
+  if (resp.ok) {
+    const rows = (await resp.json()).values || [];
+    sheetRevs = normalizeRevisions(rows.slice(1).map(r => ({
+      name: r[0], days: String(r[1] ?? '').trim() === '' ? NaN : Number(r[1]), scope: /sr30/i.test(r[2] || '') ? 'sr30' : 'all'
+    })));
+    sheetTs = Date.parse(rows[1]?.[4] || '') || 0;
+  }
+
+  const localTs = STATE.revisionsUpdatedAt || 0;
+  if (sheetRevs.length && JSON.stringify(sheetRevs) === JSON.stringify(STATE.revisions)) return 'same';
+
+  if (sheetRevs.length && (localTs === 0 || sheetTs > localTs)) {
+    STATE.revisions = sheetRevs;
+    STATE.revisionsUpdatedAt = sheetTs;
+    applyRevisions(STATE.revisions);
+    saveState();
+    return 'pull';
+  }
+
+  if (!localTs) { STATE.revisionsUpdatedAt = Date.now(); saveState(); }
+  const iso = new Date(STATE.revisionsUpdatedAt).toISOString();
+  await authFetch(`${baseUrl}/${encodeURIComponent('revisoes!A2:E')}:clear`, { method: 'POST' });
+  const writeRows = [
+    ['Nome', 'Dias', 'Escopo', '', 'AtualizadoEm'],
+    ...STATE.revisions.map((r, i) => [r.name, r.days, SCOPE_OPTION[r.scope], '', i === 0 ? iso : ''])
+  ];
+  const wr = await authFetch(`${baseUrl}/${encodeURIComponent(RANGE)}?valueInputOption=RAW`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ range: RANGE, majorDimension: 'ROWS', values: writeRows })
+  });
+  if (!wr.ok) {
+    const err = await wr.json().catch(() => ({}));
+    throw new Error(err.error?.message || `Erro ${wr.status}`);
+  }
+  return 'push';
+}
+
+async function ensureSheetsTab(sheetsId, title = 'disciplinas') {
   const resp = await authFetch(`https://sheets.googleapis.com/v4/spreadsheets/${sheetsId}:batchUpdate`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ requests: [{ addSheet: { properties: { title: 'disciplinas' } } }] })
+    body: JSON.stringify({ requests: [{ addSheet: { properties: { title } } }] })
   });
   if (!resp.ok) {
     const err = await resp.json().catch(() => ({}));
